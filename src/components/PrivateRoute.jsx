@@ -8,7 +8,6 @@ const PrivateRoute = ({ children, requiredRole }) => {
     return <Navigate to="/login" replace />;
   }
 
-  // Se è richiesto un ruolo specifico, verifica
   if (requiredRole && user?.role !== requiredRole) {
     return <Navigate to="/" replace />;
   }

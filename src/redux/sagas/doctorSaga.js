@@ -9,10 +9,9 @@ import doctorApi from '../../api/doctorApi';
 // FETCH DOCTORS SAGA
 function* fetchDoctorsSaga() {
   try {
-    // Chiama l'API reale (che ora punta a /alldoctors)
     const doctors = yield call(doctorApi.getAllDoctors);
     
-    // Salva i medici reali nello store di Redux
+    // Salva i medici nello store di Redux
     yield put(fetchDoctorsSuccess(doctors));
   } catch (error) {
     const errorMessage = error.response?.data?.message || 

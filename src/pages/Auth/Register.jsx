@@ -154,7 +154,7 @@ const Register = () => {
             </Alert>
           )}
 
-          <Box component="form" onSubmit={handleSubmit}>
+          <Box component="form" onSubmit={handleSubmit} autoComplete="off">
             <Grid container spacing={2}>
               <Grid item xs={12} sm={6}>
                 <TextField
@@ -165,6 +165,7 @@ const Register = () => {
                   onChange={handleChange}
                   required
                   disabled={loading}
+                  autoComplete="off"
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
@@ -194,6 +195,7 @@ const Register = () => {
                   onChange={handleChange}
                   required
                   disabled={loading}
+                  autoComplete="off"
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
@@ -224,6 +226,7 @@ const Register = () => {
                   onChange={handleChange}
                   required
                   disabled={loading}
+                  autoComplete="off"
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
@@ -254,6 +257,7 @@ const Register = () => {
                   onChange={handleChange}
                   required
                   disabled={loading}
+                  autoComplete="new-password"
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
@@ -295,6 +299,7 @@ const Register = () => {
                   onChange={handleChange}
                   required
                   disabled={loading}
+                  autoComplete="new-password"
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">

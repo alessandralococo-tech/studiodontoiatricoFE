@@ -19,6 +19,13 @@ import PersonIcon from '@mui/icons-material/Person';
 import EmailIcon from '@mui/icons-material/Email';
 import PhoneIcon from '@mui/icons-material/Phone';
 
+// --- ICONA DENTE PERSONALIZZATA ---
+const ToothIcon = () => (
+  <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12,2C9.5,2 7.5,3.5 6.5,5.5C5.5,7.5 5,10 5,12C5,14.5 5.5,16.5 6.5,18C7,18.75 7.5,19.25 8,19.5C8.5,19.75 8.75,19.75 9,19.75C9.5,19.75 10,19.5 10.5,19C11,18.5 11.5,17.5 12,16C12.5,17.5 13,18.5 13.5,19C14,19.5 14.5,19.75 15,19.75C15.25,19.75 15.5,19.75 16,19.5C16.5,19.25 17,18.75 17.5,18C18.5,16.5 19,14.5 19,12C19,10 18.5,7.5 17.5,5.5C16.5,3.5 14.5,2 12,2M12,4C13.5,4 15,5 15.5,6.5C16,8 16.5,10 16.5,12C16.5,13.5 16.25,15 15.75,16C15.5,16.5 15.25,16.75 15,17C15,17 14.75,17 14.5,16.75C14.25,16.5 14,16 13.5,15C13,14 12.5,12.5 12,11C11.5,12.5 11,14 10.5,15C10,16 9.75,16.5 9.5,16.75C9.25,17 9,17 9,17C8.75,16.75 8.5,16.5 8.25,16C7.75,15 7.5,13.5 7.5,12C7.5,10 8,8 8.5,6.5C9,5 10.5,4 12,4Z"/>
+  </svg>
+);
+
 const steps = ['Seleziona Data e Orario', 'Conferma Dettagli', 'Riepilogo'];
 
 // SLOT DEFINITIONS
@@ -142,7 +149,7 @@ const BookAppointment = () => {
   const handleBack = () => setActiveStep((prev) => prev - 1);
 
   const handleSubmit = () => {
-    // === FIX: RIMOSSO PATIENT ID ===
+    // === FIX: RIMOSSO PATIENT ID PER EVITARE CONFLITTI COL BACKEND ===
     // Non inviamo più il patientId nel JSON.
     // Il backend estrarrà l'utente corrente direttamente dal Token JWT.
     
@@ -175,12 +182,29 @@ const BookAppointment = () => {
         <Paper elevation={0} sx={{ p: { xs: 3, md: 5 }, borderRadius: 4, background: '#ffffff', boxShadow: '0 8px 32px rgba(0, 180, 216, 0.12)' }}>
           
           <Box sx={{ textAlign: 'center', mb: 4 }}>
+            {/* ICONA DENTE */}
+            <Box 
+              sx={{ 
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 80,
+                height: 80,
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, #00B4D8 0%, #0096C7 100%)',
+                mb: 3,
+                boxShadow: '0 8px 24px rgba(0, 180, 216, 0.3)',
+                color: '#ffffff'
+              }}
+            >
+              <ToothIcon />
+            </Box>
             <Typography variant="h4" sx={{ fontWeight: 700, color: '#00B4D8', mb: 1 }}>
               Prenota Appuntamento
             </Typography>
-            <Typography variant="subtitle1" sx={{ color: '#48CAE4', fontWeight: 600 }}>
-              {doctorDisplayName}
-            </Typography>
+            
+            {/* NOME DEL MEDICO RIMOSSO QUI COME RICHIESTO */}
+            
             {selectedDoctor.isAutoSelected && (
               <Typography variant="body2" sx={{ color: '#666', mt: 1, fontStyle: 'italic' }}>
                 Ti verrà assegnato automaticamente un medico disponibile

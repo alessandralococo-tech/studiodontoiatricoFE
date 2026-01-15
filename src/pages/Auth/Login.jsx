@@ -134,7 +134,8 @@ const Login = () => {
             </Alert>
           )}
 
-          <Box component="form" onSubmit={handleSubmit}>
+          {/* Form con autoComplete off */}
+          <Box component="form" onSubmit={handleSubmit} autoComplete="off">
             <TextField
               fullWidth
               label="Email"
@@ -145,6 +146,7 @@ const Login = () => {
               margin="normal"
               required
               disabled={loading}
+              autoComplete="off"
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -175,6 +177,7 @@ const Login = () => {
               margin="normal"
               required
               disabled={loading}
+              autoComplete="new-password"
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
