@@ -1,0 +1,257 @@
+/* Layout principale con footer sticky */
+.App {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Contenuto principale che occupa tutto lo spazio */
+main {
+  flex: 1;
+  width: 100%;
+}
+
+/* Container ottimizzato per forme e login */
+.auth-container {
+  max-width: 500px !important;
+  margin: 0 auto;
+}
+
+/* Spaziatura uniforme per pagine */
+.page-container {
+  padding: 40px 24px;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Grid responsive per card */
+.card-grid {
+  display: grid;
+  gap: 24px;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+}
+
+/* Container per form centralizzati */
+.form-container {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Stepper con stile medico */
+.stepper-container {
+  margin-bottom: 40px;
+}
+
+.MuiStepLabel-label {
+  font-weight: 600 !important;
+}
+
+.MuiStepIcon-root.Mui-active {
+  color: #00B4D8 !important;
+}
+
+.MuiStepIcon-root.Mui-completed {
+  color: #48CAE4 !important;
+}
+
+/* Hero section per landing page */
+.hero-section {
+  background: linear-gradient(135deg, #00B4D8 0%, #0096C7 100%);
+  color: white;
+  padding: 80px 24px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="grid" width="100" height="100" patternUnits="userSpaceOnUse"><path d="M 100 0 L 0 0 0 100" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+  opacity: 0.5;
+}
+
+/* Sezione features */
+.features-section {
+  padding: 80px 24px;
+  background: #ffffff;
+}
+
+.feature-card {
+  text-align: center;
+  padding: 32px;
+  border-radius: 16px;
+  background: #F0F9FF;
+  border: 2px solid #CAF0F8;
+  transition: all 0.3s ease;
+}
+
+.feature-card:hover {
+  border-color: #00B4D8;
+  transform: translateY(-4px);
+  box-shadow: 0 8px 32px rgba(0, 180, 216, 0.15);
+}
+
+.feature-icon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 24px;
+  background: linear-gradient(135deg, #00B4D8 0%, #0096C7 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 40px;
+}
+
+/* Statistiche */
+.stats-section {
+  background: linear-gradient(135deg, #F0F9FF 0%, #CAF0F8 100%);
+  padding: 60px 24px;
+}
+
+.stat-item {
+  text-align: center;
+  padding: 24px;
+}
+
+.stat-number {
+  font-size: 48px;
+  font-weight: 700;
+  color: #00B4D8;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+
+.stat-label {
+  font-size: 18px;
+  color: #666;
+  font-weight: 600;
+}
+
+/* CTA Section */
+.cta-section {
+  background: linear-gradient(135deg, #00B4D8 0%, #0096C7 100%);
+  padding: 80px 24px;
+  text-align: center;
+  color: white;
+}
+
+/* Carousel personalizzato */
+.carousel-container {
+  position: relative;
+  width: 100%;
+  height: 500px;
+  overflow: hidden;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 180, 216, 0.2);
+}
+
+.carousel-slide {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  transition: opacity 1s ease-in-out;
+}
+
+.carousel-slide.active {
+  opacity: 1;
+}
+
+/* Doctor card con foto */
+.doctor-card-image {
+  width: 100%;
+  height: 250px;
+  object-fit: cover;
+  border-radius: 16px 16px 0 0;
+}
+
+/* Responsive per tablet */
+@media (max-width: 960px) {
+  .hero-section {
+    padding: 60px 24px;
+  }
+  
+  .features-section,
+  .stats-section,
+  .cta-section {
+    padding: 60px 24px;
+  }
+  
+  .card-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  }
+}
+
+/* Responsive per mobile */
+@media (max-width: 768px) {
+  .page-container {
+    padding: 24px 16px;
+  }
+  
+  .card-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .hero-section {
+    padding: 40px 16px;
+  }
+  
+  .features-section,
+  .stats-section,
+  .cta-section {
+    padding: 40px 16px;
+  }
+  
+  .carousel-container {
+    height: 300px;
+  }
+  
+  .stat-number {
+    font-size: 36px;
+  }
+  
+  .auth-container {
+    max-width: 100% !important;
+  }
+}
+
+/* Animazioni aggiuntive */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.slide-in-up {
+  animation: slideInUp 0.8s ease-out;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.pulse-animation {
+  animation: pulse 2s ease-in-out infinite;
+}
