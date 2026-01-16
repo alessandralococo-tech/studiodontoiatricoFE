@@ -1,16 +1,72 @@
-# React + Vite
+FRONTEND DEVELOPER - Requisiti e Task Principali
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+1. Setup Progetto & Architettura
+   - Inizializzazione progetto React
+   - Configurazione Redux Toolkit + Redux-Saga
+   - Setup routing (React Router)
+   - Struttura folders
 
-Currently, two official plugins are available:
+2. Autenticazione
+   - Pagina Login Paziente
+   - Pagina Registrazione Paziente
+   - Pagina Login Medico (Admin)
+   - Redux state management per auth
+   - Redux-Saga flow autenticazione
+   - PrivateRoute per protezione route
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+3. Gestione Medici
+   - Componente Lista Medici (per selezione)
+   - Pagina gestione medici (admin)
+   - Redux state per medici
 
-## React Compiler
+4. Sistema Prenotazioni - Paziente
+   - Pagina Selezione Medico
+   - Calendario visualizzazione disponibilità
+   - Component Slot Picker
+   - Form prenotazione (wizard multi-step)
+   - Redux-Saga flow prenotazione
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+5. Integrazione Pagamenti
+   - Integrazione PayPal React SDK
+   - Component PayPal Button
+   - Pagina Checkout
+   - Gestione stati pagamento (loading, success, error)
 
-## Expanding the ESLint configuration
+6. Dashboard Medico (Admin)
+   - Layout dashboard con sidebar
+   - Pagina prenotazioni personali medico
+   - Pagina vista prenotazioni altri medici
+   - Pagina panoramica occupazione sale
+   - Filtri e ricerca
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+7. Profilo Paziente
+   - Pagina profilo utente (view/edit)
+   - Pagina storico prenotazioni
+   - Pagina storico pagamenti
+   - Visualizzazione stati (badge colorati)
+
+8. UI/UX & Testing
+   - Gestione loading states e spinners
+   - Error boundaries
+   - Messaggi errore user-friendly
+   - Responsive check
+   - Testing manuale end-to-end
+
+9. Documentation
+   - README setup
+   - Credenziali demo
+   - Screenshots
+
+10. Stack Tecnologico
+   - React (18.x)
+   - JavaScript/ES6+ (o TypeScript opzionale)
+   - Redux Toolkit
+   - Redux-Saga (side effects, async flow)
+   - React Router
+   - Axios
+   - Material-UI o Ant Design
+   - CSS/SCSS
+   - calendario
+   - paypal sdk
+   - React Hook Form o Formik
+   - Yup
