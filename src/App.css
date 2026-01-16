@@ -11,10 +11,11 @@ main {
   width: 100%;
 }
 
-/* Container ottimizzato per forme e login */
+/* Container per form di autenticazione - STRETTO E VERTICALE */
 .auth-container {
-  max-width: 500px !important;
+  max-width: 450px !important;
   margin: 0 auto;
+  padding: 24px;
 }
 
 /* Spaziatura uniforme per pagine */
@@ -37,23 +38,6 @@ main {
   width: 100%;
   max-width: 600px;
   margin: 0 auto;
-}
-
-/* Stepper con stile medico */
-.stepper-container {
-  margin-bottom: 40px;
-}
-
-.MuiStepLabel-label {
-  font-weight: 600 !important;
-}
-
-.MuiStepIcon-root.Mui-active {
-  color: #00B4D8 !important;
-}
-
-.MuiStepIcon-root.Mui-completed {
-  color: #48CAE4 !important;
 }
 
 /* Hero section per landing page */
@@ -224,6 +208,7 @@ main {
   
   .auth-container {
     max-width: 100% !important;
+    padding: 16px;
   }
 }
 

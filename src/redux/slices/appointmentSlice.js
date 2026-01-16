@@ -1,19 +1,21 @@
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
-  list: [],
+  list: [], // Per il paziente
+  doctorList: [], // NUOVO: Per il medico
   availableSlots: [],
   loading: false,
   error: null,
   bookingSuccess: false,
   cancelSuccess: false,
+  updateSuccess: false, // Per notificare aggiornamenti (es. cambio stato)
 };
 
 const appointmentSlice = createSlice({
   name: 'appointments',
   initialState,
   reducers: {
-    // FETCH AVAILABLE SLOTS
+    // --- FETCH SLOTS ---
     fetchAvailableSlotsRequest: (state) => {
       state.loading = true;
       state.error = null;
@@ -21,14 +23,13 @@ const appointmentSlice = createSlice({
     fetchAvailableSlotsSuccess: (state, action) => {
       state.loading = false;
       state.availableSlots = action.payload;
-      state.error = null;
     },
     fetchAvailableSlotsFailure: (state, action) => {
       state.loading = false;
       state.error = action.payload;
     },
 
-    // CREATE APPOINTMENT
+    // --- CREATE APPOINTMENT ---
     createAppointmentRequest: (state) => {
       state.loading = true;
       state.error = null;
@@ -36,17 +37,16 @@ const appointmentSlice = createSlice({
     },
     createAppointmentSuccess: (state, action) => {
       state.loading = false;
-      state.list.push(action.payload);
       state.bookingSuccess = true;
-      state.error = null;
+      // Se è un paziente, aggiungi alla sua lista
+      state.list.push(action.payload); 
     },
     createAppointmentFailure: (state, action) => {
       state.loading = false;
       state.error = action.payload;
-      state.bookingSuccess = false;
     },
 
-    // FETCH MY APPOINTMENTS
+    // --- FETCH MY APPOINTMENTS (PAZIENTE) ---
     fetchMyAppointmentsRequest: (state) => {
       state.loading = true;
       state.error = null;
@@ -54,14 +54,47 @@ const appointmentSlice = createSlice({
     fetchMyAppointmentsSuccess: (state, action) => {
       state.loading = false;
       state.list = action.payload;
-      state.error = null;
     },
     fetchMyAppointmentsFailure: (state, action) => {
       state.loading = false;
       state.error = action.payload;
     },
 
-    // CANCEL APPOINTMENT
+    // --- FETCH DOCTOR APPOINTMENTS (NUOVO - MEDICO) ---
+    fetchDoctorAppointmentsRequest: (state) => {
+      state.loading = true;
+      state.error = null;
+    },
+    fetchDoctorAppointmentsSuccess: (state, action) => {
+      state.loading = false;
+      state.doctorList = action.payload;
+    },
+    fetchDoctorAppointmentsFailure: (state, action) => {
+      state.loading = false;
+      state.error = action.payload;
+    },
+
+    // --- UPDATE APPOINTMENT STATUS (NUOVO - MEDICO) ---
+    updateAppointmentStatusRequest: (state) => {
+      state.loading = true;
+      state.error = null;
+      state.updateSuccess = false;
+    },
+    updateAppointmentStatusSuccess: (state, action) => {
+      state.loading = false;
+      state.updateSuccess = true;
+      // Aggiorniamo l'elemento nella lista del medico
+      const updatedApp = action.payload;
+      state.doctorList = state.doctorList.map(app => 
+        app.id === updatedApp.id ? updatedApp : app
+      );
+    },
+    updateAppointmentStatusFailure: (state, action) => {
+      state.loading = false;
+      state.error = action.payload;
+    },
+
+    // --- CANCEL APPOINTMENT ---
     cancelAppointmentRequest: (state) => {
       state.loading = true;
       state.error = null;
@@ -70,35 +103,21 @@ const appointmentSlice = createSlice({
     cancelAppointmentSuccess: (state, action) => {
       state.loading = false;
       state.cancelSuccess = true;
-      state.error = null;
-      // Rimuovi l'appuntamento dalla lista locale o aggiorna il suo stato
-      const appointmentId = action.payload;
-      state.list = state.list.map(app => 
-        app.id === appointmentId 
-          ? { ...app, status: 'CANCELLED' }
-          : app
-      );
+      const id = action.payload;
+      // Rimuovi da entrambe le liste per sicurezza
+      state.list = state.list.filter(app => app.id !== id);
+      state.doctorList = state.doctorList.filter(app => app.id !== id);
     },
     cancelAppointmentFailure: (state, action) => {
       state.loading = false;
       state.error = action.payload;
-      state.cancelSuccess = false;
     },
 
-    // RESET BOOKING SUCCESS
-    resetBookingSuccess: (state) => {
-      state.bookingSuccess = false;
-    },
-
-    // RESET CANCEL SUCCESS
-    resetCancelSuccess: (state) => {
-      state.cancelSuccess = false;
-    },
-
-    // CLEAR ERROR
-    clearAppointmentError: (state) => {
-      state.error = null;
-    },
+    // UTILS
+    resetBookingSuccess: (state) => { state.bookingSuccess = false; },
+    resetCancelSuccess: (state) => { state.cancelSuccess = false; },
+    resetUpdateSuccess: (state) => { state.updateSuccess = false; },
+    clearAppointmentError: (state) => { state.error = null; },
   },
 });
 
@@ -112,11 +131,18 @@ export const {
   fetchMyAppointmentsRequest,
   fetchMyAppointmentsSuccess,
   fetchMyAppointmentsFailure,
+  fetchDoctorAppointmentsRequest, // Export
+  fetchDoctorAppointmentsSuccess, // Export
+  fetchDoctorAppointmentsFailure, // Export
+  updateAppointmentStatusRequest, // Export
+  updateAppointmentStatusSuccess, // Export
+  updateAppointmentStatusFailure, // Export
   cancelAppointmentRequest,
   cancelAppointmentSuccess,
   cancelAppointmentFailure,
   resetBookingSuccess,
   resetCancelSuccess,
+  resetUpdateSuccess,
   clearAppointmentError,
 } = appointmentSlice.actions;
 

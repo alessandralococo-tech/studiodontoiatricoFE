@@ -4,7 +4,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import {
   Container, Paper, Typography, TextField, Button, Box, Alert,
   FormControl, InputLabel, Select, MenuItem, Grid, Chip,
-  Stepper, Step, StepLabel, Card, Tooltip, Divider
+  Stepper, Step, StepLabel, Card, Tooltip, Divider, Radio,
+  RadioGroup, FormControlLabel, FormLabel
 } from '@mui/material';
 import {
   fetchAvailableSlotsRequest,
@@ -12,12 +13,19 @@ import {
   resetBookingSuccess,
   clearAppointmentError,
 } from '../../redux/slices/appointmentSlice';
+import {
+  setPaymentMethod,
+  createPayPalPaymentRequest,
+  resetPaymentState,
+} from '../../redux/slices/paymentSlice';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import BlockIcon from '@mui/icons-material/Block';
 import PersonIcon from '@mui/icons-material/Person';
 import EmailIcon from '@mui/icons-material/Email';
 import PhoneIcon from '@mui/icons-material/Phone';
+import PaymentIcon from '@mui/icons-material/Payment';
+import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 
 // --- ICONA DENTE PERSONALIZZATA ---
 const ToothIcon = () => (
@@ -26,7 +34,7 @@ const ToothIcon = () => (
   </svg>
 );
 
-const steps = ['Seleziona Data e Orario', 'Conferma Dettagli', 'Riepilogo'];
+const steps = ['Seleziona Data e Orario', 'Conferma Dettagli', 'Metodo di Pagamento', 'Riepilogo'];
 
 // SLOT DEFINITIONS
 const ALL_TIME_SLOTS = [
@@ -54,15 +62,32 @@ const formatSlotTime = (slot) => {
   return timeMap[slot] || slot;
 };
 
+// CALCOLA PREZZO BASATO SULLA DURATA
+const calculatePrice = (duration) => {
+  switch(duration) {
+    case 15: return 35.00;
+    case 30: return 60.00;
+    case 60: return 100.00;
+    default: return 35.00;
+  }
+};
+
 const BookAppointment = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const { selectedDoctor } = useSelector((state) => state.doctors);
-  const { availableSlots, loading, error, bookingSuccess } = useSelector((state) => state.appointments);
+  
+  // MODIFICA IMPORTANTE: Aggiungiamo 'list' per recuperare l'appuntamento appena creato
+  const { availableSlots, loading, error, bookingSuccess, list } = useSelector((state) => state.appointments);
+  
   const { user, isAuthenticated } = useSelector((state) => state.auth);
+  const { paymentMethod, loading: paymentLoading, error: paymentError } = useSelector((state) => state.payment);
 
   const [activeStep, setActiveStep] = useState(0);
+  
+  // Flag per gestire il flusso PayPal
+  const [isProcessingPayPal, setIsProcessingPayPal] = useState(false);
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -96,15 +121,44 @@ const BookAppointment = () => {
     }
   }, [selectedDoctor, isAuthenticated, navigate]);
 
+  // GESTIONE SUCCESSO PRENOTAZIONE E AVVIO PAGAMENTO
   useEffect(() => {
     if (bookingSuccess) {
-      const timer = setTimeout(() => {
-        dispatch(resetBookingSuccess());
-        navigate('/my-appointments');
-      }, 1500);
-      return () => clearTimeout(timer);
+      // SE ABBIAMO SCELTO PAYPAL E STIAMO PROCESSANDO:
+      if (isProcessingPayPal) {
+        
+        // Recuperiamo l'ultimo appuntamento creato (che Redux ha aggiunto alla lista)
+        const lastCreatedAppointment = list[list.length - 1];
+
+        // Verifichiamo che esista e abbia un ID valido
+        if (lastCreatedAppointment && lastCreatedAppointment.id) {
+            const amount = calculatePrice(formData.duration);
+            console.log("✅ Appuntamento creato con ID:", lastCreatedAppointment.id);
+            console.log("🚀 Avvio pagamento PayPal...");
+            
+            // Disattiviamo il flag per evitare loop
+            setIsProcessingPayPal(false); 
+            
+            // Avviamo il pagamento usando l'ID VERO
+            dispatch(createPayPalPaymentRequest({ 
+              amount: amount.toFixed(2), 
+              appointmentId: lastCreatedAppointment.id 
+            }));
+        } else {
+            console.error("❌ ERRORE: Impossibile recuperare l'ID dell'appuntamento creato dallo store.");
+        }
+      } 
+      // SE INVECE È UN PAGAMENTO IN CONTANTI O PAYPAL È GIÀ PARTITO:
+      else if (!isProcessingPayPal && paymentMethod === 'CASH') {
+        const timer = setTimeout(() => {
+          dispatch(resetBookingSuccess());
+          dispatch(resetPaymentState());
+          navigate('/my-appointments');
+        }, 1500);
+        return () => clearTimeout(timer);
+      }
     }
-  }, [bookingSuccess, navigate, dispatch]);
+  }, [bookingSuccess, isProcessingPayPal, list, paymentMethod, formData.duration, dispatch, navigate]);
 
   useEffect(() => {
     if (error) dispatch(clearAppointmentError());
@@ -138,9 +192,17 @@ const BookAppointment = () => {
 
   const handleInputChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
+  const handlePaymentMethodChange = (e) => {
+    dispatch(setPaymentMethod(e.target.value));
+  };
+
   const handleNext = () => {
     if (activeStep === 0 && (!formData.date || !formData.selectedSlot)) {
       alert('Seleziona data e orario prima di continuare');
+      return;
+    }
+    if (activeStep === 2 && !paymentMethod) {
+      alert('Seleziona un metodo di pagamento');
       return;
     }
     setActiveStep((prev) => prev + 1);
@@ -149,9 +211,16 @@ const BookAppointment = () => {
   const handleBack = () => setActiveStep((prev) => prev - 1);
 
   const handleSubmit = () => {
-    
+    // 1. Recupero robusto dell'ID paziente (lasciamo che il backend gestisca se è null)
+    let patientId = user?.id;
+    if (!patientId) {
+      const stored = localStorage.getItem('user');
+      if (stored) try { patientId = JSON.parse(stored).id; } catch(e){}
+    }
+
     const appointmentData = {
       doctorId: parseInt(selectedDoctor.id, 10),
+      patientId: patientId ? parseInt(patientId, 10) : null, 
       appointmentDate: formData.date,
       timeSlot: formData.selectedSlot,
       durationMinutes: parseInt(formData.duration, 10),
@@ -161,8 +230,17 @@ const BookAppointment = () => {
       phone: formData.phone || ''
     };
     
-    console.log("Invio appuntamento (senza patientId):", appointmentData); 
-    dispatch(createAppointmentRequest(appointmentData));
+    if (paymentMethod === 'PAYPAL') {
+        // Attiviamo il flag e creiamo l'appuntamento
+        // Il pagamento vero e proprio partirà nell'useEffect quando avremo l'ID
+        setIsProcessingPayPal(true);
+        console.log("Creazione appuntamento pre-pagamento...");
+        dispatch(createAppointmentRequest(appointmentData));
+    } else {
+        // Pagamento contanti
+        console.log("Invio prenotazione (Contanti)..."); 
+        dispatch(createAppointmentRequest(appointmentData));
+    }
   };
 
   if (!selectedDoctor) return null;
@@ -172,13 +250,18 @@ const BookAppointment = () => {
     ? "Primo Medico Disponibile" 
     : `Dr. ${selectedDoctor.name} ${selectedDoctor.surname}`;
 
+  const appointmentPrice = calculatePrice(formData.duration);
+
+  // Calcolo stato di caricamento e errori combinati
+  const isLoading = loading || paymentLoading;
+  const combinedError = error || paymentError;
+
   return (
     <Box sx={{ minHeight: '100vh', background: 'linear-gradient(135deg, #F0F9FF 0%, #E0F7FA 100%)', py: 6 }}>
       <Container maxWidth="lg">
         <Paper elevation={0} sx={{ p: { xs: 3, md: 5 }, borderRadius: 4, background: '#ffffff', boxShadow: '0 8px 32px rgba(0, 180, 216, 0.12)' }}>
           
           <Box sx={{ textAlign: 'center', mb: 4 }}>
-            {/* ICONA DENTE */}
             <Box 
               sx={{ 
                 display: 'inline-flex',
@@ -206,13 +289,13 @@ const BookAppointment = () => {
             )}
           </Box>
 
-          {bookingSuccess && (
+          {bookingSuccess && paymentMethod === 'CASH' && (
             <Alert severity="success" sx={{ mb: 4, borderRadius: 3 }}>
-              Prenotazione confermata con successo! Reindirizzamento...
+              Prenotazione confermata con successo! Pagamento da effettuare in studio. Reindirizzamento...
             </Alert>
           )}
 
-          {error && <Alert severity="error" sx={{ mb: 4, borderRadius: 3 }}>{error}</Alert>}
+          {combinedError && <Alert severity="error" sx={{ mb: 4, borderRadius: 3 }}>{combinedError}</Alert>}
 
           <Stepper activeStep={activeStep} sx={{ mb: 5 }}>
             {steps.map((label) => <Step key={label}><StepLabel>{label}</StepLabel></Step>)}
@@ -239,9 +322,9 @@ const BookAppointment = () => {
                   <FormControl fullWidth>
                     <InputLabel>Durata</InputLabel>
                     <Select value={formData.duration} label="Durata" onChange={handleDurationChange}>
-                      <MenuItem value={15}>15 minuti</MenuItem>
-                      <MenuItem value={30}>30 minuti</MenuItem>
-                      <MenuItem value={60}>1 ora</MenuItem>
+                      <MenuItem value={15}>15 minuti - €35.00</MenuItem>
+                      <MenuItem value={30}>30 minuti - €60.00</MenuItem>
+                      <MenuItem value={60}>1 ora - €100.00</MenuItem>
                     </Select>
                   </FormControl>
                 </Card>
@@ -413,8 +496,137 @@ const BookAppointment = () => {
              </Box>
           )}
 
-          {/* STEP 3: RIEPILOGO */}
+          {/* STEP 3: METODO DI PAGAMENTO */}
           {activeStep === 2 && (
+            <Box sx={{ mt: 2 }}>
+              <Typography variant="h6" sx={{ mb: 4, color: '#00B4D8', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1 }}>
+                <PaymentIcon /> Seleziona Metodo di Pagamento
+              </Typography>
+
+              <Grid container spacing={3}>
+                <Grid item xs={12}>
+                  <Card sx={{ p: 3, border: '2px solid #CAF0F8', bgcolor: '#F0F9FF', mb: 3 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                      <Typography variant="h5" sx={{ fontWeight: 700, color: '#333' }}>
+                        Importo Totale
+                      </Typography>
+                      <Typography variant="h4" sx={{ fontWeight: 700, color: '#00B4D8' }}>
+                        €{appointmentPrice.toFixed(2)}
+                      </Typography>
+                    </Box>
+                    <Typography variant="body2" color="text.secondary">
+                      Durata: {formData.duration} minuti
+                    </Typography>
+                  </Card>
+                </Grid>
+
+                <Grid item xs={12}>
+                  <FormControl component="fieldset" fullWidth>
+                    <RadioGroup value={paymentMethod || ''} onChange={handlePaymentMethodChange}>
+                      <Card 
+                        sx={{ 
+                          mb: 2, 
+                          p: 3, 
+                          cursor: 'pointer',
+                          border: paymentMethod === 'PAYPAL' ? '3px solid #0070BA' : '2px solid #E0E0E0',
+                          bgcolor: paymentMethod === 'PAYPAL' ? '#F0F8FF' : '#FFFFFF',
+                          transition: 'all 0.3s',
+                          '&:hover': {
+                            borderColor: '#0070BA',
+                            transform: 'translateY(-2px)',
+                            boxShadow: '0 4px 12px rgba(0, 112, 186, 0.15)'
+                          }
+                        }}
+                        onClick={() => dispatch(setPaymentMethod('PAYPAL'))}
+                      >
+                        <FormControlLabel 
+                          value="PAYPAL" 
+                          control={<Radio sx={{ color: '#0070BA', '&.Mui-checked': { color: '#0070BA' } }} />}
+                          label={
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
+                              <Box 
+                                sx={{ 
+                                  width: 60, 
+                                  height: 60, 
+                                  borderRadius: 2, 
+                                  background: 'linear-gradient(135deg, #0070BA 0%, #003087 100%)',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  color: '#ffffff',
+                                  fontWeight: 700,
+                                  fontSize: '1.2rem'
+                                }}
+                              >
+                                PP
+                              </Box>
+                              <Box sx={{ flex: 1 }}>
+                                <Typography variant="h6" sx={{ fontWeight: 700, color: '#333' }}>
+                                  PayPal
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                  Paga in modo sicuro con PayPal
+                                </Typography>
+                              </Box>
+                            </Box>
+                          }
+                        />
+                      </Card>
+
+                      <Card 
+                        sx={{ 
+                          p: 3, 
+                          cursor: 'pointer',
+                          border: paymentMethod === 'CASH' ? '3px solid #4CAF50' : '2px solid #E0E0E0',
+                          bgcolor: paymentMethod === 'CASH' ? '#F1F8F4' : '#FFFFFF',
+                          transition: 'all 0.3s',
+                          '&:hover': {
+                            borderColor: '#4CAF50',
+                            transform: 'translateY(-2px)',
+                            boxShadow: '0 4px 12px rgba(76, 175, 80, 0.15)'
+                          }
+                        }}
+                        onClick={() => dispatch(setPaymentMethod('CASH'))}
+                      >
+                        <FormControlLabel 
+                          value="CASH" 
+                          control={<Radio sx={{ color: '#4CAF50', '&.Mui-checked': { color: '#4CAF50' } }} />}
+                          label={
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
+                              <Box 
+                                sx={{ 
+                                  width: 60, 
+                                  height: 60, 
+                                  borderRadius: 2, 
+                                  background: 'linear-gradient(135deg, #4CAF50 0%, #388E3C 100%)',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center'
+                                }}
+                              >
+                                <AccountBalanceWalletIcon sx={{ fontSize: 32, color: '#ffffff' }} />
+                              </Box>
+                              <Box sx={{ flex: 1 }}>
+                                <Typography variant="h6" sx={{ fontWeight: 700, color: '#333' }}>
+                                  Pagamento in Studio
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                  Paga in contanti o con carta direttamente in studio
+                                </Typography>
+                              </Box>
+                            </Box>
+                          }
+                        />
+                      </Card>
+                    </RadioGroup>
+                  </FormControl>
+                </Grid>
+              </Grid>
+            </Box>
+          )}
+
+          {/* STEP 4: RIEPILOGO */}
+          {activeStep === 3 && (
             <Card sx={{ p: 4, mt: 2, border: '2px solid #00B4D8', background: 'linear-gradient(135deg, #F0F9FF 0%, #E0F7FA 100%)' }}>
               <Typography variant="h6" gutterBottom sx={{ color: '#00B4D8', fontWeight: 700, mb: 3 }}>
                 Riepilogo Prenotazione
@@ -442,6 +654,22 @@ const BookAppointment = () => {
                     <Typography><strong>Note:</strong> {formData.notes}</Typography>
                   </Grid>
                 )}
+                <Grid item xs={12}>
+                  <Divider sx={{ my: 2 }} />
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2, bgcolor: '#ffffff', borderRadius: 2 }}>
+                    <Box>
+                      <Typography variant="body1" sx={{ fontWeight: 700 }}>
+                        <strong>Metodo di Pagamento:</strong>
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {paymentMethod === 'PAYPAL' ? 'PayPal' : 'Pagamento in Studio'}
+                      </Typography>
+                    </Box>
+                    <Typography variant="h5" sx={{ fontWeight: 700, color: '#00B4D8' }}>
+                      €{appointmentPrice.toFixed(2)}
+                    </Typography>
+                  </Box>
+                </Grid>
               </Grid>
             </Card>
           )}
@@ -463,7 +691,7 @@ const BookAppointment = () => {
             >
               Indietro
             </Button>
-            {activeStep < 2 ? (
+            {activeStep < 3 ? (
               <Button 
                 onClick={handleNext} 
                 variant="contained"
@@ -481,13 +709,13 @@ const BookAppointment = () => {
                 onClick={handleSubmit} 
                 variant="contained" 
                 color="success" 
-                disabled={loading || bookingSuccess}
+                disabled={isLoading || bookingSuccess || paymentLoading}
                 sx={{
                   fontWeight: 700,
                   px: 4
                 }}
               >
-                {loading ? 'Attendere...' : 'Conferma Prenotazione'}
+                {isLoading || paymentLoading ? 'Attendere...' : 'Conferma Prenotazione'}
               </Button>
             )}
           </Box>

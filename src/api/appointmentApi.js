@@ -38,11 +38,10 @@ export const appointmentApi = {
     return response.data;
   },
 
-  // CANCEL APPOINTMENT (DELETE /appointments/{id}) con motivo
-  cancelAppointment: async (id, reason) => {
-    const response = await axiosInstance.delete(`/appointments/${id}`, {
-      params: { reason }
-    });
+  // CANCEL APPOINTMENT (DELETE /appointments/{id})
+  // MODIFICATO: Rimosso il parametro 'reason' perché il backend non lo accetta
+  cancelAppointment: async (id) => {
+    const response = await axiosInstance.delete(`/appointments/${id}`);
     return response.data;
   },
 

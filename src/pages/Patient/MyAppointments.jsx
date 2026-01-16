@@ -22,10 +22,13 @@ import {
   Button,
   TextField,
   IconButton,
-  Divider,
   Snackbar,
+  Tabs,
+  Tab,
+  Fade
 } from '@mui/material';
 import { fetchMyAppointmentsRequest, cancelAppointmentRequest } from '../../redux/slices/appointmentSlice';
+import { fetchMyPaymentsRequest } from '../../redux/slices/paymentSlice';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -37,10 +40,13 @@ import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import MessageIcon from '@mui/icons-material/Message';
 import HistoryIcon from '@mui/icons-material/History';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import PaymentIcon from '@mui/icons-material/Payment';
+import PendingIcon from '@mui/icons-material/Pending';
 
 const MyAppointments = () => {
   const dispatch = useDispatch();
   const { list, loading, error, cancelSuccess } = useSelector((state) => state.appointments);
+  const { paymentList } = useSelector((state) => state.payment);
   
   // Stati per i popup
   const [selectedAppointment, setSelectedAppointment] = useState(null);
@@ -52,11 +58,14 @@ const MyAppointments = () => {
   const [showSuccessSnackbar, setShowSuccessSnackbar] = useState(false);
   const [reasonError, setReasonError] = useState(false);
 
+  // NUOVO STATO PER LE TAB (0 = In Programma, 1 = Storico)
+  const [activeTab, setActiveTab] = useState(0);
+
   useEffect(() => {
     dispatch(fetchMyAppointmentsRequest());
+    dispatch(fetchMyPaymentsRequest());
   }, [dispatch]);
 
-  // Quando la cancellazione ha successo
   useEffect(() => {
     if (cancelSuccess) {
       setShowSuccessSnackbar(true);
@@ -66,6 +75,10 @@ const MyAppointments = () => {
       dispatch(fetchMyAppointmentsRequest());
     }
   }, [cancelSuccess, dispatch]);
+
+  const handleTabChange = (event, newValue) => {
+    setActiveTab(newValue);
+  };
 
   const formatTimeSlot = (slot) => {
     const timeMap = {
@@ -81,36 +94,47 @@ const MyAppointments = () => {
     return timeMap[slot] || slot;
   };
 
-  // Funzione per calcolare lo stato effettivo basato sulla data
+  const calculatePrice = (duration) => {
+    switch(duration) {
+      case 15: return 35.00;
+      case 30: return 60.00;
+      case 60: return 100.00;
+      default: return 35.00;
+    }
+  };
+
+  const getPaymentStatus = (appointment) => {
+    if (!paymentList) return 'UNPAID';
+    const foundPayment = paymentList.find(p => p.appointmentId === appointment.id);
+    if (foundPayment) {
+      if (foundPayment.status === 'SUCCESS') return 'PAID';
+      if (foundPayment.status === 'PENDING' || foundPayment.status === 'CREATED') return 'PENDING';
+    }
+    return 'UNPAID'; 
+  };
+
   const getEffectiveStatus = (appointment) => {
     if (appointment.status === 'CANCELLED' || appointment.status === 'COMPLETED') {
       return appointment.status;
     }
-
     const timeStr = formatTimeSlot(appointment.timeSlot);
     const appDateTime = new Date(appointment.appointmentDate);
-    
     if (timeStr && timeStr.includes(':')) {
       const [hours, minutes] = timeStr.split(':');
       appDateTime.setHours(parseInt(hours), parseInt(minutes), 0);
     }
-
     const now = new Date();
     if (now > appDateTime) {
       return 'COMPLETED';
     }
-
     return appointment.status;
   };
 
-  // Memoizzazione e divisione delle liste
   const { upcomingAppointments, pastAppointments } = useMemo(() => {
     if (!list || list.length === 0) return { upcomingAppointments: [], pastAppointments: [] };
-    
     const sorted = [...list].sort((a, b) => b.id - a.id);
     const upcoming = [];
     const past = [];
-
     sorted.forEach(app => {
       const status = getEffectiveStatus(app);
       if (status === 'COMPLETED' || status === 'CANCELLED') {
@@ -119,7 +143,6 @@ const MyAppointments = () => {
         upcoming.push(app);
       }
     });
-
     return { upcomingAppointments: upcoming, pastAppointments: past };
   }, [list]);
 
@@ -147,6 +170,19 @@ const MyAppointments = () => {
       case 'COMPLETED': return <CheckCircleIcon sx={{ fontSize: 18 }} />;
       case 'CANCELLED': return <CancelIcon sx={{ fontSize: 18 }} />;
       default: return null;
+    }
+  };
+
+  const getPaymentStatusChip = (paymentStatus) => {
+    switch(paymentStatus) {
+      case 'PAID':
+        return <Chip icon={<CheckCircleIcon />} label="Pagato" color="success" size="small" sx={{ fontWeight: 600 }} />;
+      case 'PENDING':
+        return <Chip icon={<PendingIcon />} label="In Elaborazione" color="warning" size="small" sx={{ fontWeight: 600 }} />;
+      case 'UNPAID':
+        return <Chip icon={<PaymentIcon />} label="Da Saldare" color="error" size="small" sx={{ fontWeight: 600 }} />;
+      default:
+        return null;
     }
   };
 
@@ -207,11 +243,20 @@ const MyAppointments = () => {
     }
   };
 
-  // Helper per renderizzare una tabella
   const renderTable = (appointments, sectionType) => {
     const isHistory = sectionType === 'completed';
     const isCancelled = sectionType === 'cancelled';
     const allowClick = sectionType === 'upcoming';
+
+    if (appointments.length === 0) {
+        return (
+            <Card sx={{ textAlign: 'center', py: 6, borderRadius: 4, background: '#f9fafb', border: '2px dashed #e0e0e0', boxShadow: 'none' }}>
+                <CardContent>
+                    <Typography variant="h6" color="text.secondary">Nessun appuntamento in questa sezione</Typography>
+                </CardContent>
+            </Card>
+        );
+    }
 
     return (
       <TableContainer 
@@ -234,8 +279,7 @@ const MyAppointments = () => {
                   : (isHistory ? '#e0e0e0' : 'linear-gradient(135deg, #00B4D8 0%, #0096C7 100%)')
               }}
             >
-
-              {['Data', 'Orario', 'Durata', 'Stato'].map((header, i) => (
+              {['Data', 'Orario', 'Durata', 'Importo', 'Pagamento', 'Stato'].map((header, i) => (
                 <TableCell 
                   key={i}
                   sx={{ 
@@ -254,6 +298,8 @@ const MyAppointments = () => {
           <TableBody>
             {appointments.map((appointment, index) => {
               const effectiveStatus = getEffectiveStatus(appointment);
+              const paymentStatus = getPaymentStatus(appointment);
+              const price = calculatePrice(appointment.durationMinutes);
 
               return (
                 <TableRow 
@@ -302,6 +348,14 @@ const MyAppointments = () => {
                     </Typography>
                   </TableCell>
                   <TableCell sx={{ py: 3, borderBottom: 'none' }}>
+                    <Typography variant="body1" sx={{ fontWeight: 700, color: '#00B4D8' }}>
+                      €{price.toFixed(2)}
+                    </Typography>
+                  </TableCell>
+                  <TableCell sx={{ py: 3, borderBottom: 'none' }}>
+                    {getPaymentStatusChip(paymentStatus)}
+                  </TableCell>
+                  <TableCell sx={{ py: 3, borderBottom: 'none' }}>
                     <Chip
                       icon={getStatusIcon(effectiveStatus)}
                       label={getStatusLabel(effectiveStatus)}
@@ -322,8 +376,6 @@ const MyAppointments = () => {
 
   if (loading) return <LoadingSpinner />;
 
-  const hasNoAppointments = upcomingAppointments.length === 0 && pastAppointments.length === 0;
-
   return (
     <Box 
       sx={{ 
@@ -334,7 +386,7 @@ const MyAppointments = () => {
     >
       <Container maxWidth="lg">
         {/* Header */}
-        <Box sx={{ textAlign: 'center', mb: 6 }}>
+        <Box sx={{ textAlign: 'center', mb: 4 }}>
           <Box 
             sx={{ 
               display: 'inline-flex',
@@ -354,7 +406,7 @@ const MyAppointments = () => {
             variant="h3" 
             component="h1" 
             gutterBottom
-            sx={{ fontWeight: 700, color: '#00B4D8', mb: 2 }}
+            sx={{ fontWeight: 700, color: '#00B4D8', mb: 1 }}
           >
             I Miei Appuntamenti
           </Typography>
@@ -364,51 +416,74 @@ const MyAppointments = () => {
           <Alert severity="error" sx={{ mb: 4, borderRadius: 3 }}>{error}</Alert>
         )}
 
-        {hasNoAppointments && !loading ? (
-          <Card 
-            sx={{ 
-              textAlign: 'center', py: 10, borderRadius: 4,
-              background: 'linear-gradient(135deg, #ffffff 0%, #F0F9FF 100%)',
-              border: '2px dashed #00B4D850',
-            }}
-          >
-            <CardContent>
-              <CalendarMonthIcon sx={{ fontSize: 60, color: '#00B4D8', mb: 2 }} />
-              <Typography variant="h5" sx={{ fontWeight: 700, color: '#00B4D8', mb: 2 }}>
-                Nessun appuntamento trovato
-              </Typography>
-              <Typography variant="body1" color="text.secondary">
-                Prenota la tua prima visita per iniziare!
-              </Typography>
-            </CardContent>
-          </Card>
-        ) : (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {upcomingAppointments.length > 0 && (
-              <Box>
-                <Typography variant="h5" sx={{ fontWeight: 700, color: '#333', mb: 3, display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <CalendarMonthIcon color="primary" /> In Programma
-                </Typography>
-                {renderTable(upcomingAppointments, 'upcoming')}
-              </Box>
+        {/* --- TABS SECTION --- */}
+        <Box sx={{ mb: 4 }}>
+            <Paper elevation={0} sx={{ borderRadius: 3, bgcolor: '#ffffff', p: 1, display: 'inline-block', width: '100%', maxWidth: 500, mx: 'auto', display: 'flex', justifyContent: 'center' }}>
+                <Tabs 
+                    value={activeTab} 
+                    onChange={handleTabChange} 
+                    centered
+                    variant="fullWidth"
+                    sx={{
+                        width: '100%',
+                        '& .MuiTabs-indicator': {
+                            backgroundColor: '#00B4D8',
+                            height: 3,
+                            borderRadius: 1.5
+                        },
+                        '& .MuiTab-root': {
+                            fontWeight: 700,
+                            fontSize: '1rem',
+                            textTransform: 'none',
+                            color: '#999',
+                            '&.Mui-selected': {
+                                color: '#00B4D8',
+                            },
+                        }
+                    }}
+                >
+                    <Tab label="In Programma" icon={<CalendarMonthIcon />} iconPosition="start" />
+                    <Tab label="Storico" icon={<HistoryIcon />} iconPosition="start" />
+                </Tabs>
+            </Paper>
+        </Box>
+
+        {/* --- CONTENT SECTION --- */}
+        <Box sx={{ minHeight: 400 }}>
+            {/* TAB 0: IN PROGRAMMA */}
+            {activeTab === 0 && (
+                <Fade in={activeTab === 0} timeout={500}>
+                    <Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, gap: 1 }}>
+                            <CalendarMonthIcon sx={{ color: '#00B4D8', fontSize: 28 }} />
+                            <Typography variant="h5" sx={{ fontWeight: 700, color: '#333' }}>
+                                Appuntamenti Futuri
+                            </Typography>
+                        </Box>
+                        {renderTable(upcomingAppointments, 'upcoming')}
+                    </Box>
+                </Fade>
             )}
 
-            {pastAppointments.length > 0 && (
-              <Box>
-                <Divider sx={{ mb: 4 }}>
-                  <Chip label="STORICO" sx={{ fontWeight: 600, color: '#999' }} />
-                </Divider>
-                <Typography variant="h5" sx={{ fontWeight: 700, color: '#666', mb: 3, display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <HistoryIcon color="action" /> Storico Appuntamenti
-                </Typography>
-                {renderTable(pastAppointments, 'completed')}
-              </Box>
+            {/* TAB 1: STORICO */}
+            {activeTab === 1 && (
+                <Fade in={activeTab === 1} timeout={500}>
+                    <Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, gap: 1 }}>
+                            <HistoryIcon sx={{ color: '#666', fontSize: 28 }} />
+                            <Typography variant="h5" sx={{ fontWeight: 700, color: '#333' }}>
+                                Storico Passato
+                            </Typography>
+                        </Box>
+                        {renderTable(pastAppointments, 'completed')}
+                    </Box>
+                </Fade>
             )}
-          </Box>
-        )}
+        </Box>
+
       </Container>
 
-      {/* Dialog Dettagli Appuntamento */}
+      {/* Dialogs... rimangono invariati */}
       {selectedAppointment && (
         <Dialog 
           open={showDetailsDialog} 
@@ -443,6 +518,16 @@ const MyAppointments = () => {
                     {formatTimeSlot(selectedAppointment.timeSlot)}
                   </Typography>
                 </Box>
+                <Box>
+                  <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, mb: 1 }}>IMPORTO</Typography>
+                  <Typography variant="body1" sx={{ fontWeight: 700, color: '#00B4D8' }}>
+                    €{calculatePrice(selectedAppointment.durationMinutes).toFixed(2)}
+                  </Typography>
+                </Box>
+                <Box>
+                  <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, mb: 1 }}>PAGAMENTO</Typography>
+                  {getPaymentStatusChip(getPaymentStatus(selectedAppointment))}
+                </Box>
               </Box>
             </Box>
           </DialogContent>
@@ -464,115 +549,34 @@ const MyAppointments = () => {
         </Dialog>
       )}
 
-      {/* Dialog Conferma Cancellazione con Causale */}
-      <Dialog 
-        open={showCancelDialog} 
-        onClose={handleCloseCancel} 
-        maxWidth="sm" 
-        fullWidth 
-        PaperProps={{ sx: { borderRadius: 4 } }}
-      >
-        <DialogTitle sx={{ 
-          background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
-          color: '#ffffff',
-          fontWeight: 700,
-          py: 3
-        }}>
+      {/* Altri dialogs... (Cancel, Note, Snackbar) rimangono invariati */}
+      <Dialog open={showCancelDialog} onClose={handleCloseCancel} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 4 } }}>
+        <DialogTitle sx={{ background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)', color: '#ffffff', fontWeight: 700, py: 3 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <CancelIcon sx={{ fontSize: 32 }} />
-            <Typography variant="h5" sx={{ fontWeight: 700 }}>
-              Conferma Annullamento
-            </Typography>
+            <Typography variant="h5" sx={{ fontWeight: 700 }}>Conferma Annullamento</Typography>
           </Box>
         </DialogTitle>
         <DialogContent sx={{ pt: 4 }}>
-          <Typography sx={{ color: 'text.secondary', mb: 3, fontSize: '1.1rem' }}>
-            Sei sicuro di voler annullare questo appuntamento?
-          </Typography>
-          <TextField
-            fullWidth
-            multiline
-            rows={4}
-            label="Motivo della cancellazione *"
-            value={cancellationReason}
-            onChange={(e) => {
-              setCancellationReason(e.target.value);
-              setReasonError(false);
-            }}
-            placeholder="Inserisci il motivo per cui vuoi annullare l'appuntamento..."
-            variant="outlined"
-            required
-            error={reasonError}
-            helperText={reasonError ? "Il motivo è obbligatorio" : ""}
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                '&.Mui-focused fieldset': {
-                  borderColor: '#ef4444',
-                },
-              },
-            }}
-          />
-          <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-            * Campo obbligatorio
-          </Typography>
+          <Typography sx={{ color: 'text.secondary', mb: 3, fontSize: '1.1rem' }}>Sei sicuro di voler annullare questo appuntamento?</Typography>
+          <TextField fullWidth multiline rows={4} label="Motivo della cancellazione *" value={cancellationReason} onChange={(e) => { setCancellationReason(e.target.value); setReasonError(false); }} placeholder="Inserisci il motivo..." variant="outlined" required error={reasonError} helperText={reasonError ? "Il motivo è obbligatorio" : ""} sx={{ '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#ef4444' } } }} />
+          <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>* Campo obbligatorio</Typography>
         </DialogContent>
         <DialogActions sx={{ p: 3, gap: 2 }}>
-          <Button 
-            onClick={handleCloseCancel} 
-            variant="outlined" 
-            sx={{ flex: 1, py: 1.5, fontWeight: 600 }}
-          >
-            Torna Indietro
-          </Button>
-          <Button 
-            onClick={handleConfirmCancel} 
-            variant="contained" 
-            disabled={loading}
-            sx={{ 
-              flex: 1, 
-              bgcolor: '#ef4444',
-              py: 1.5,
-              fontWeight: 700,
-              '&:hover': {
-                bgcolor: '#dc2626'
-              }
-            }}
-          >
-            {loading ? 'Annullamento...' : 'Conferma Annullamento'}
-          </Button>
+          <Button onClick={handleCloseCancel} variant="outlined" sx={{ flex: 1, py: 1.5, fontWeight: 600 }}>Torna Indietro</Button>
+          <Button onClick={handleConfirmCancel} variant="contained" disabled={loading} sx={{ flex: 1, bgcolor: '#ef4444', py: 1.5, fontWeight: 700, '&:hover': { bgcolor: '#dc2626' } }}>{loading ? 'Annullamento...' : 'Conferma Annullamento'}</Button>
         </DialogActions>
       </Dialog>
 
-      {/* Dialog Invia Nota */}
       <Dialog open={showNoteDialog} onClose={handleCloseNote} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 4 } }}>
-        <DialogTitle sx={{ 
-          background: 'linear-gradient(135deg, #00B4D8 0%, #0096C7 100%)',
-          color: '#ffffff',
-          fontWeight: 700,
-          py: 3
-        }}>
+        <DialogTitle sx={{ background: 'linear-gradient(135deg, #00B4D8 0%, #0096C7 100%)', color: '#ffffff', fontWeight: 700, py: 3 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <MessageIcon />
             <Typography variant="h5" sx={{ fontWeight: 700 }}>Invia Nota al Medico</Typography>
           </Box>
         </DialogTitle>
         <DialogContent sx={{ pt: 4 }}>
-          <TextField
-            fullWidth 
-            multiline 
-            rows={4} 
-            value={note} 
-            onChange={(e) => setNote(e.target.value)}
-            placeholder="Scrivi qui il tuo messaggio..." 
-            variant="outlined"
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                '&.Mui-focused fieldset': {
-                  borderColor: '#00B4D8',
-                },
-              },
-            }}
-          />
+          <TextField fullWidth multiline rows={4} value={note} onChange={(e) => setNote(e.target.value)} placeholder="Scrivi qui il tuo messaggio..." variant="outlined" sx={{ '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#00B4D8' } } }} />
         </DialogContent>
         <DialogActions sx={{ p: 3, gap: 2 }}>
           <Button onClick={handleCloseNote} variant="outlined" sx={{ flex: 1, py: 1.5 }}>Annulla</Button>
@@ -580,28 +584,8 @@ const MyAppointments = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Snackbar Successo */}
-      <Snackbar
-        open={showSuccessSnackbar}
-        autoHideDuration={4000}
-        onClose={() => setShowSuccessSnackbar(false)}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-      >
-        <Alert 
-          onClose={() => setShowSuccessSnackbar(false)} 
-          severity="success" 
-          variant="filled"
-          sx={{ 
-            width: '100%',
-            borderRadius: 3,
-            boxShadow: '0 8px 24px rgba(76, 175, 80, 0.3)',
-            fontSize: '1rem',
-            fontWeight: 600
-          }}
-          icon={<CheckCircleOutlineIcon fontSize="large" />}
-        >
-          Appuntamento annullato con successo!
-        </Alert>
+      <Snackbar open={showSuccessSnackbar} autoHideDuration={4000} onClose={() => setShowSuccessSnackbar(false)} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
+        <Alert onClose={() => setShowSuccessSnackbar(false)} severity="success" variant="filled" sx={{ width: '100%', borderRadius: 3, boxShadow: '0 8px 24px rgba(76, 175, 80, 0.3)', fontSize: '1rem', fontWeight: 600 }} icon={<CheckCircleOutlineIcon fontSize="large" />}>Appuntamento annullato con successo!</Alert>
       </Snackbar>
     </Box>
   );

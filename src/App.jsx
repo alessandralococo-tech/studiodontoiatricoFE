@@ -2,7 +2,6 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { Provider } from 'react-redux';
 import store from './redux/store';
 import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
-import './App.css';
 
 // Components
 import Navbar from './components/Layout/Navbar';
@@ -16,6 +15,7 @@ import Register from './pages/Auth/Register';
 import DoctorsList from './pages/Patient/DoctorsList';
 import BookAppointment from './pages/Patient/BookAppointment';
 import MyAppointments from './pages/Patient/MyAppointments';
+import PaymentSuccess from './pages/Patient/PaymentSuccess';
 import DoctorDashboard from './pages/Doctor/DoctorDashboard';
 
 const theme = createTheme({
@@ -43,62 +43,32 @@ const theme = createTheme({
   },
   typography: {
     fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif',
-    h1: {
-      fontWeight: 700,
-    },
-    h2: {
-      fontWeight: 700,
-    },
-    h3: {
-      fontWeight: 700,
-    },
-    h4: {
-      fontWeight: 700,
-    },
-    h5: {
-      fontWeight: 600,
-    },
-    h6: {
-      fontWeight: 600,
-    },
-    button: {
-      textTransform: 'none',
-      fontWeight: 600,
-    },
+    h1: { fontWeight: 700 },
+    h2: { fontWeight: 700 },
+    h3: { fontWeight: 700 },
+    h4: { fontWeight: 700 },
+    h5: { fontWeight: 600 },
+    h6: { fontWeight: 600 },
+    button: { textTransform: 'none', fontWeight: 600 },
   },
-  shape: {
-    borderRadius: 12,
-  },
+  shape: { borderRadius: 12 },
   components: {
     MuiButton: {
       styleOverrides: {
-        root: {
-          borderRadius: 12,
-          padding: '12px 32px',
-          fontSize: '1rem',
-        },
+        root: { borderRadius: 12, padding: '12px 32px', fontSize: '1rem' },
         contained: {
           boxShadow: '0 4px 12px rgba(0, 180, 216, 0.2)',
-          '&:hover': {
-            boxShadow: '0 6px 20px rgba(0, 180, 216, 0.3)',
-          },
+          '&:hover': { boxShadow: '0 6px 20px rgba(0, 180, 216, 0.3)' },
         },
       },
     },
     MuiCard: {
       styleOverrides: {
-        root: {
-          borderRadius: 16,
-          boxShadow: '0 4px 20px rgba(0, 180, 216, 0.08)',
-        },
+        root: { borderRadius: 16, boxShadow: '0 4px 20px rgba(0, 180, 216, 0.08)' },
       },
     },
     MuiPaper: {
-      styleOverrides: {
-        root: {
-          borderRadius: 16,
-        },
-      },
+      styleOverrides: { root: { borderRadius: 16 } },
     },
   },
 });
@@ -113,14 +83,10 @@ function App() {
             <Navbar />
             <main>
               <Routes>
-                {/* Home Page */}
                 <Route path="/" element={<Home />} />
-
-                {/* Route pubbliche */}
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
 
-                {/* Route per pazienti */}
                 <Route
                   path="/doctors"
                   element={
@@ -145,8 +111,17 @@ function App() {
                     </PrivateRoute>
                   }
                 />
+                
+                {/* CORRETTO: La rotta ora coincide con il redirect del Backend (/payments/success) */}
+                <Route
+                  path="/payments/success"
+                  element={
+                    <PrivateRoute requiredRole="ROLE_USER">
+                      <PaymentSuccess />
+                    </PrivateRoute>
+                  }
+                />
 
-                {/* Route per medici */}
                 <Route
                   path="/doctor-dashboard"
                   element={
@@ -156,7 +131,6 @@ function App() {
                   }
                 />
 
-                {/* 404 - Redirect alla home */}
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </main>
