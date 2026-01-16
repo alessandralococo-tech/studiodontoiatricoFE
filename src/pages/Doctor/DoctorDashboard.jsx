@@ -18,7 +18,6 @@ const DoctorDashboard = () => {
           <ul>
             <li>Visualizzazione appuntamenti personali</li>
             <li>Panoramica appuntamenti altri medici</li>
-            <li>Statistiche e analytics</li>
           </ul>
         </Box>
       </Paper>

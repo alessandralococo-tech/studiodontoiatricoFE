@@ -18,7 +18,6 @@ import BookAppointment from './pages/Patient/BookAppointment';
 import MyAppointments from './pages/Patient/MyAppointments';
 import DoctorDashboard from './pages/Doctor/DoctorDashboard';
 
-// Tema Material-UI personalizzato con colori dentista
 const theme = createTheme({
   palette: {
     primary: {

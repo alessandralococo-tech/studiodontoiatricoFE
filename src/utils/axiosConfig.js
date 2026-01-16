@@ -15,18 +15,18 @@ axiosInstance.interceptors.request.use(
   (config) => {
     let token = localStorage.getItem('token');
     
-    // 1. Controllo che il token esista
+    // Controllo che il token esista
     if (token && token !== 'undefined' && token !== 'null') {
       
-      // 2. PULIZIA: Rimuove eventuali virgolette extra salvate per sbaglio
+      //Rimuove eventuali virgolette extra salvate per sbaglio
       token = token.replace(/"/g, '');
       
-      // 3. PULIZIA: Se il token salvato ha già "Bearer ", lo togliamo per non metterlo doppio
+      //Se il token salvato ha già "Bearer ", lo togliamo per non metterlo doppio
       if (token.startsWith('Bearer ')) {
          token = token.substring(7);
       }
       
-      // 4. Invio pulito
+      //Invio pulito
       config.headers.Authorization = `Bearer ${token.trim()}`;
     }
     
@@ -41,7 +41,6 @@ axiosInstance.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       console.error("Token scaduto o invalido. Logout necessario.");
-      // Se vuoi evitare il loop di redirect, commenta le righe sotto finché non risolvi
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       window.location.href = '/login';

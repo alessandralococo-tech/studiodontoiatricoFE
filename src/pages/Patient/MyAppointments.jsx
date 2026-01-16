@@ -37,7 +37,6 @@ import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import MessageIcon from '@mui/icons-material/Message';
 import HistoryIcon from '@mui/icons-material/History';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
-import EmailIcon from '@mui/icons-material/Email'; // Nuova icona
 
 const MyAppointments = () => {
   const dispatch = useDispatch();
@@ -64,7 +63,6 @@ const MyAppointments = () => {
       setShowCancelDialog(false);
       setSelectedAppointment(null);
       setCancellationReason('');
-      // Ricarica gli appuntamenti
       dispatch(fetchMyAppointmentsRequest());
     }
   }, [cancelSuccess, dispatch]);
@@ -152,33 +150,6 @@ const MyAppointments = () => {
     }
   };
 
-  // --- HELPERS PER I DATI DEL MEDICO ---
-  const getDoctorName = (appointment) => {
-    if (appointment.doctorName) return appointment.doctorName;
-    if (appointment.doctorFirstName) return appointment.doctorFirstName;
-    if (appointment.doctor?.name) return appointment.doctor.name;
-    if (appointment.doctor?.firstName) return appointment.doctor.firstName;
-    if (appointment.firstName) return appointment.firstName;
-    return 'Medico';
-  };
-
-  const getDoctorSurname = (appointment) => {
-    if (appointment.doctorSurname) return appointment.doctorSurname;
-    if (appointment.doctorLastName) return appointment.doctorLastName;
-    if (appointment.doctor?.surname) return appointment.doctor.surname;
-    if (appointment.doctor?.lastName) return appointment.doctor.lastName;
-    if (appointment.lastName) return appointment.lastName;
-    return 'Sconosciuto';
-  };
-
-  // NUOVA FUNZIONE HELPER PER L'EMAIL
-  const getDoctorEmail = (appointment) => {
-    if (appointment.doctorEmail) return appointment.doctorEmail;
-    if (appointment.doctor?.email) return appointment.doctor.email;
-    return ''; // Ritorna stringa vuota se non trovata
-  };
-  // -------------------------------------
-
   const handleRowClick = (appointment, allowClick) => {
     if (allowClick) {
       setSelectedAppointment(appointment);
@@ -263,7 +234,8 @@ const MyAppointments = () => {
                   : (isHistory ? '#e0e0e0' : 'linear-gradient(135deg, #00B4D8 0%, #0096C7 100%)')
               }}
             >
-              {['Data', 'Orario', 'Durata', 'Medico', 'Stato'].map((header, i) => (
+
+              {['Data', 'Orario', 'Durata', 'Stato'].map((header, i) => (
                 <TableCell 
                   key={i}
                   sx={{ 
@@ -281,10 +253,6 @@ const MyAppointments = () => {
           </TableHead>
           <TableBody>
             {appointments.map((appointment, index) => {
-              const docName = getDoctorName(appointment);
-              const docSurname = getDoctorSurname(appointment);
-              const docEmail = getDoctorEmail(appointment); // Recupero email
-              const docInitials = (docName.charAt(0) + docSurname.charAt(0)).toUpperCase();
               const effectiveStatus = getEffectiveStatus(appointment);
 
               return (
@@ -333,39 +301,6 @@ const MyAppointments = () => {
                       {appointment.durationMinutes} min
                     </Typography>
                   </TableCell>
-                  
-                  <TableCell sx={{ py: 3, borderBottom: 'none' }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Box 
-                        sx={{ 
-                          width: 35,
-                          height: 35,
-                          borderRadius: '50%',
-                          bgcolor: isCancelled ? '#ef5350' : (isHistory ? '#bdbdbd' : '#00B4D8'),
-                          color: '#ffffff',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontWeight: 700,
-                          fontSize: '0.8rem'
-                        }}
-                      >
-                        {docInitials}
-                      </Box>
-                      <Box>
-                        <Typography sx={{ fontWeight: 700, color: isCancelled ? '#d32f2f' : (isHistory ? '#666' : '#333') }}>
-                          Dr. {docName} {docSurname}
-                        </Typography>
-                        {/* Visualizzazione Email sotto il nome */}
-                        {docEmail && (
-                            <Typography variant="caption" sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: 'text.secondary' }}>
-                                <EmailIcon sx={{ fontSize: 12 }} /> {docEmail}
-                            </Typography>
-                        )}
-                      </Box>
-                    </Box>
-                  </TableCell>
-
                   <TableCell sx={{ py: 3, borderBottom: 'none' }}>
                     <Chip
                       icon={getStatusIcon(effectiveStatus)}
@@ -495,22 +430,6 @@ const MyAppointments = () => {
           
           <DialogContent sx={{ pt: 4, pb: 3 }}>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-              <Box>
-                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, mb: 1 }}>MEDICO</Typography>
-                <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                  Dr. {getDoctorName(selectedAppointment)} {getDoctorSurname(selectedAppointment)}
-                </Typography>
-                {/* Visualizzazione Email nel Dialog */}
-                {getDoctorEmail(selectedAppointment) && (
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
-                        <EmailIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
-                        <Typography variant="body2" color="text.secondary">
-                            {getDoctorEmail(selectedAppointment)}
-                        </Typography>
-                    </Box>
-                )}
-              </Box>
-              <Divider />
               <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
                 <Box>
                   <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, mb: 1 }}>DATA</Typography>

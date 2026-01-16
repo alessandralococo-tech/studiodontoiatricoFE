@@ -149,13 +149,9 @@ const BookAppointment = () => {
   const handleBack = () => setActiveStep((prev) => prev - 1);
 
   const handleSubmit = () => {
-    // === FIX: RIMOSSO PATIENT ID PER EVITARE CONFLITTI COL BACKEND ===
-    // Non inviamo più il patientId nel JSON.
-    // Il backend estrarrà l'utente corrente direttamente dal Token JWT.
     
     const appointmentData = {
       doctorId: parseInt(selectedDoctor.id, 10),
-      // patientId: RIMOSSO
       appointmentDate: formData.date,
       timeSlot: formData.selectedSlot,
       durationMinutes: parseInt(formData.duration, 10),
@@ -202,8 +198,6 @@ const BookAppointment = () => {
             <Typography variant="h4" sx={{ fontWeight: 700, color: '#00B4D8', mb: 1 }}>
               Prenota Appuntamento
             </Typography>
-            
-            {/* NOME DEL MEDICO RIMOSSO QUI COME RICHIESTO */}
             
             {selectedDoctor.isAutoSelected && (
               <Typography variant="body2" sx={{ color: '#666', mt: 1, fontStyle: 'italic' }}>

@@ -35,8 +35,6 @@ function* loginSaga(action) {
     const token = response.token || response.accessToken;
     const decodedToken = parseJwt(token);
     
-    // Tenta di recuperare l'ID, ma se non c'è, NON FARE ERRORI.
-    // Il backend userà il token per identificare l'utente.
     let userId = response.id || 
                  response.userId || 
                  response.patientId || 
@@ -44,7 +42,7 @@ function* loginSaga(action) {
                  decodedToken?.userId || 
                  decodedToken?.patientId;
 
-    // Se l'ID è ancora null, controlliamo il 'sub' solo se è numerico (raro, di solito è email)
+    // Se l'ID è ancora null, controlliamo il 'sub' solo se è numerico
     if (!userId && decodedToken?.sub && !isNaN(decodedToken.sub)) {
         userId = parseInt(decodedToken.sub, 10);
     }
@@ -56,7 +54,7 @@ function* loginSaga(action) {
     }
 
     const userData = {
-      id: userId, // Può essere null
+      id: userId,
       email: response.email || decodedToken?.sub || email,
       role: response.role || decodedToken?.role || 'ROLE_PATIENT',
       firstName: response.firstName || '',
