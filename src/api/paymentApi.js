@@ -11,12 +11,11 @@ const paymentApi = {
     });
   },
 
-  // MODIFICATO: Usa l'endpoint di cattura manuale del controller
   // POST /payments/capture?orderId=...
   capturePayPalPayment: (token) => {
     return axiosInstance.post('/payments/capture', null, {
       params: {
-        orderId: token // Il controller si aspetta "orderId", PayPal ci dà "token". Sono la stessa cosa.
+        orderId: token
       }
     });
   },

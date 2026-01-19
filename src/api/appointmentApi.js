@@ -13,7 +13,7 @@ export const appointmentApi = {
     return response.data;
   },
 
-  // CREATE APPOINTMENT (chiunque può creare)
+  // CREATE APPOINTMENT
   createAppointment: async (appointmentData) => {
     const response = await axiosInstance.post('/appointments', appointmentData);
     return response.data;
@@ -38,8 +38,6 @@ export const appointmentApi = {
     return response.data;
   },
 
-  // CANCEL APPOINTMENT (DELETE /appointments/{id})
-  // MODIFICATO: Rimosso il parametro 'reason' perché il backend non lo accetta
   cancelAppointment: async (id) => {
     const response = await axiosInstance.delete(`/appointments/${id}`);
     return response.data;
