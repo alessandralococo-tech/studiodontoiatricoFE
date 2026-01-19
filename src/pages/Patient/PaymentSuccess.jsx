@@ -21,7 +21,7 @@ const PaymentSuccess = () => {
   useEffect(() => {
     // Se c'è un token
     if (token && !captureAttempted.current && !paymentSuccess) {
-      console.log("Token trovato, tentativo di cattura manuale...", token);
+      console.log("Token trovato", token);
       captureAttempted.current = true;
       dispatch(capturePayPalPaymentRequest({ token }));
     }

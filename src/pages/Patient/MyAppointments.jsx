@@ -58,7 +58,7 @@ const MyAppointments = () => {
   const [showSuccessSnackbar, setShowSuccessSnackbar] = useState(false);
   const [reasonError, setReasonError] = useState(false);
 
-  // NUOVO STATO PER LE TAB
+  // Nuovo stato per le tabs
   const [activeTab, setActiveTab] = useState(0);
 
   useEffect(() => {
@@ -450,7 +450,7 @@ const MyAppointments = () => {
 
         {/* --- CONTENT SECTION --- */}
         <Box sx={{ minHeight: 400 }}>
-            {/* TAB 0: IN PROGRAMMA */}
+            {/* TAB IN PROGRAMMA */}
             {activeTab === 0 && (
                 <Fade in={activeTab === 0} timeout={500}>
                     <Box>
@@ -465,7 +465,7 @@ const MyAppointments = () => {
                 </Fade>
             )}
 
-            {/* TAB 1: STORICO */}
+            {/* TAB STORICO */}
             {activeTab === 1 && (
                 <Fade in={activeTab === 1} timeout={500}>
                     <Box>

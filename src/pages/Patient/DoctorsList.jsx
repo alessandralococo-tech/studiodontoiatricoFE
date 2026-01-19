@@ -260,7 +260,7 @@ const DoctorsList = () => {
           ) : (
             <Grid container spacing={4}>
               {list.map((doctor, index) => {
-                // Usiamo le funzioni helper per estrarre i dati
+                // Funzioni helper per estrarre i dati
                 const docName = getDoctorName(doctor);
                 const docSurname = getDoctorSurname(doctor);
                 const docEmail = getDoctorEmail(doctor);

@@ -28,7 +28,7 @@ const Profile = () => {
     phone: ''
   });
 
-  // Carica i dati reali dal backend all'apertura
+  // Carica i dati dal backend
   useEffect(() => {
     dispatch(fetchProfileRequest());
   }, [dispatch]);
@@ -60,7 +60,6 @@ const Profile = () => {
   };
 
   const handleSubmit = () => {
-    // Qui andrà la chiamata per aggiornare il profilo quando la collega farà l'endpoint PUT
     console.log("Salvataggio dati:", formData);
     setShowSuccessSnackbar(true);
     setIsEditing(false);

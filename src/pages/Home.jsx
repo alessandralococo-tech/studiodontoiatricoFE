@@ -21,7 +21,7 @@ import StarIcon from '@mui/icons-material/Star';
 
 const Home = () => {
   const navigate = useNavigate();
-  // Recuperiamo lo stato dell'autenticazione per decidere cosa far fare al bottone
+  // Recuperiamo lo stato dell'autenticazione per decidere dove ci porta il bottone
   const { isAuthenticated, user } = useSelector((state) => state.auth);
   const [currentSlide, setCurrentSlide] = useState(0);
 
@@ -43,14 +43,14 @@ const Home = () => {
   const handleGetStarted = () => {
     if (isAuthenticated) {
       if (user?.role === 'ROLE_ADMIN') {
-        // Se è medico, va alla dashboard
+        // Se è medico mi porta alla dashboard
         navigate('/doctor-dashboard');
       } else {
-        // Se è paziente (o utente generico), va al PROFILO come richiesto
+        // Se è paziente va al profilo
         navigate('/profile');
       }
     } else {
-      // Se non è loggato, va alla registrazione
+      // Se non è loggato invece va alla registrazione
       navigate('/register');
     }
   };
@@ -152,7 +152,7 @@ const Home = () => {
               Prenota online la tua visita con i nostri specialisti certificati.
             </Typography>
             <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-              {/* TASTO PRINCIPALE - Porta al Profilo se loggato */}
+              {/* Tasto che porta al profilo se loggato */}
               <Button
                 variant="contained"
                 size="large"
