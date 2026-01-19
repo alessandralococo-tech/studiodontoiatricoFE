@@ -6,7 +6,7 @@ const initialState = {
   loading: false,
   error: null,
   paymentSuccess: false,
-  paymentList: [], //Lista per salvare i pagamenti scaricati
+  paymentList: [], //Lista per salvare i pagamenti
 };
 
 const paymentSlice = createSlice({
@@ -49,7 +49,7 @@ const paymentSlice = createSlice({
       state.error = action.payload;
     },
 
-    // NUOVO: FETCH MY PAYMENTS
+    // FETCH MY PAYMENTS
     fetchMyPaymentsRequest: (state) => {
       state.loading = true;
     },
