@@ -39,7 +39,7 @@ const DoctorsList = () => {
     dispatch(fetchDoctorsRequest());
   }, [dispatch]);
 
-  // --- FUNZIONI HELPER PER RECUPERARE I DATI DAL DB IN MODO SICURO ---
+  // --- FUNZIONI HELPER ---
 
   const getDoctorName = (doctor) => {
     if (!doctor) return '';
@@ -60,7 +60,6 @@ const DoctorsList = () => {
     if (!doctor) return '';
     return doctor.specialization || doctor.speciality || 'Medico Generico';
   };
-  // -------------------------------------------------------------------
 
   const handleSelectDoctor = (doctor) => {
     // Quando selezioniamo il dottore passiamo i dati normalizzati

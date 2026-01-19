@@ -1,7 +1,7 @@
 import axiosInstance from '../utils/axiosConfig';
 
 export const authApi = {
-  // LOGIN
+  // Login
   login: async (email, password) => {
     const response = await axiosInstance.post('/auth/login', {
       email,
@@ -10,7 +10,7 @@ export const authApi = {
     return response.data;
   },
 
-  // REGISTER PAZIENTE
+  // Registra paziente
   register: async (firstName, lastName, email, password) => {
     const response = await axiosInstance.post('/auth/register', {
       firstName,
@@ -20,10 +20,16 @@ export const authApi = {
     });
     return response.data;
   },
+  
+  // Ottieni profilo Paziente
+  getPatientProfile: async () => {
+    const response = await axiosInstance.get('/patient/me');
+    return response.data;
+  },
 
-  // Questo serve perché il login non ci restituisce l'ID
-  getPatientDetailsByEmail: async (email) => {
-    const response = await axiosInstance.get(`/patients/email/${email}`);
+  // Ottieni profilo Medico
+  getDoctorProfile: async () => {
+    const response = await axiosInstance.get('/alldoctors/me');
     return response.data;
   }
 };

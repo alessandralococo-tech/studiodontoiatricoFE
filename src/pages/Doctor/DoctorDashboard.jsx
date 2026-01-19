@@ -4,7 +4,7 @@ import {
   Container, Typography, Paper, Box, Grid, Card, CardContent,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
   Chip, Button, IconButton, TextField, Tooltip, Alert, Menu, MenuItem,
-  Dialog, DialogTitle, DialogContent, DialogActions, Divider // <--- AGGIUNTO QUI
+  Dialog, DialogTitle, DialogContent, DialogActions, Divider
 } from '@mui/material';
 import { 
   fetchDoctorAppointmentsRequest, 
@@ -158,7 +158,6 @@ const DoctorDashboard = () => {
               </CardContent>
             </Card>
           </Grid>
-          {/* Puoi aggiungere altre card KPI qui (es. Pazienti Totali, Guadagno odierno) */}
         </Grid>
 
         {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}

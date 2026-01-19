@@ -1,4 +1,4 @@
-import { call, put, takeLatest } from 'redux-saga/effects';
+import { call, put, takeLatest, select } from 'redux-saga/effects';
 import {
   loginRequest,
   loginSuccess,
@@ -6,27 +6,27 @@ import {
   registerRequest,
   registerSuccess,
   registerFailure,
+  fetchProfileRequest, // IMPORT
+  fetchProfileSuccess, // IMPORT
+  fetchProfileFailure  // IMPORT
 } from '../slices/authSlice';
 import authApi from '../../api/authApi';
 
-// Helper per decodificare il token (JWT)
+// Helper JWT
 const parseJwt = (token) => {
   try {
     if (!token) return null;
     const base64Url = token.split('.')[1];
     const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
-        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-    }).join(''));
-
+    const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(c => 
+        '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+    ).join(''));
     return JSON.parse(jsonPayload);
   } catch (e) {
-    console.error("Errore parsing JWT:", e);
     return null;
   }
 };
 
-// --- LOGIN SAGA ---
 function* loginSaga(action) {
   try {
     const { email, password } = action.payload;
@@ -35,61 +35,35 @@ function* loginSaga(action) {
     const token = response.token || response.accessToken;
     const decodedToken = parseJwt(token);
     
-    let userId = response.id || 
-                 response.userId || 
-                 response.patientId || 
-                 decodedToken?.id || 
-                 decodedToken?.userId || 
-                 decodedToken?.patientId;
-
-    if (!userId && decodedToken?.sub && !isNaN(decodedToken.sub)) {
-        userId = parseInt(decodedToken.sub, 10);
-    }
-
-    // Se non troviamo l'ID, lo lasciamo null
-    if (!userId) {
-        console.warn(" ID Utente non trovato nel Login");
-        userId = null;
-    }
-
-    const userData = {
-      id: userId,
+    // Costruiamo un oggetto utente base dal token
+    const basicUserData = {
       email: response.email || decodedToken?.sub || email,
       role: response.role || decodedToken?.role || 'ROLE_PATIENT',
-      firstName: response.firstName || '',
-      lastName: response.lastName || '',
     };
 
     localStorage.setItem('token', token);
-    localStorage.setItem('user', JSON.stringify(userData));
+    // Salviamo temporaneamente i dati base, poi fetchProfile li arricchirà
+    localStorage.setItem('user', JSON.stringify(basicUserData));
 
-    yield put(loginSuccess({ ...userData, token }));
+    yield put(loginSuccess({ ...basicUserData, token }));
+    
+    // SUBITO DOPO IL LOGIN, SCARICHIAMO I DATI COMPLETI
+    yield put(fetchProfileRequest());
 
   } catch (error) {
     yield put(loginFailure(error.message || 'Errore Login'));
   }
 }
 
-// --- REGISTER SAGA ---
 function* registerSaga(action) {
   try {
     const { firstName, lastName, email, password } = action.payload;
-    
     const response = yield call(authApi.register, firstName, lastName, email, password);
     const token = response.token || response.accessToken;
-    const decodedToken = parseJwt(token);
-    
-    let userId = response.id || response.userId;
-
-    if (!userId) {
-        console.warn("⚠️ ID non ricevuto post-registrazione. Uso null.");
-        userId = null; 
-    }
 
     const userData = {
-      id: userId,
-      email: response.email || email,
-      role: response.role || 'ROLE_PATIENT',
+      email: email,
+      role: 'ROLE_PATIENT',
       firstName: firstName,
       lastName: lastName,
     };
@@ -98,14 +72,53 @@ function* registerSaga(action) {
     localStorage.setItem('user', JSON.stringify(userData));
 
     yield put(registerSuccess({ ...userData, token }));
+    // Anche qui potremmo fare fetchProfile per sicurezza
+    yield put(fetchProfileRequest());
 
   } catch (error) {
-    const errorMessage = error.response?.data?.message || error.message || 'Errore registrazione';
-    yield put(registerFailure(errorMessage));
+    yield put(registerFailure(error.message || 'Errore registrazione'));
+  }
+}
+
+// --- NUOVA SAGA: FETCH PROFILE ---
+function* fetchProfileSaga() {
+  try {
+    // Recuperiamo lo stato attuale per sapere il ruolo
+    const state = yield select();
+    const role = state.auth.user?.role;
+
+    let profileData = null;
+
+    if (role === 'ROLE_ADMIN') {
+      // Se è medico
+      const response = yield call(authApi.getDoctorProfile);
+      profileData = response; 
+    } else {
+      // Se è paziente (default)
+      const response = yield call(authApi.getPatientProfile);
+      profileData = response;
+    }
+
+    // NORMALIZZAZIONE DATI: Backend usa "name/surname", Frontend usa "firstName/lastName"
+    const normalizedData = {
+      id: profileData.id,
+      email: profileData.email,
+      firstName: profileData.name,      // MAPPING
+      lastName: profileData.surname,    // MAPPING
+      phone: profileData.phone || '',   // Solo per pazienti
+      specialization: profileData.specialization || '', // Solo per medici
+      birth: profileData.birth || ''
+    };
+
+    yield put(fetchProfileSuccess(normalizedData));
+
+  } catch (error) {
+    yield put(fetchProfileFailure(error.message));
   }
 }
 
 export default function* authSaga() {
   yield takeLatest(loginRequest.type, loginSaga);
   yield takeLatest(registerRequest.type, registerSaga);
+  yield takeLatest(fetchProfileRequest.type, fetchProfileSaga); // WATCHER
 }

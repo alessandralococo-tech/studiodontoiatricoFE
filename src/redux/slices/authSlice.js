@@ -20,14 +20,7 @@ const authSlice = createSlice({
     loginSuccess: (state, action) => {
       state.loading = false;
       state.isAuthenticated = true;
-      // SALVA TUTTI I DATI DELL'UTENTE
-      state.user = {
-        id: action.payload.id,
-        email: action.payload.email,
-        role: action.payload.role,
-        firstName: action.payload.firstName || '',
-        lastName: action.payload.lastName || '',
-      };
+      state.user = action.payload;
       state.token = action.payload.token;
       state.error = null;
     },
@@ -44,19 +37,29 @@ const authSlice = createSlice({
     registerSuccess: (state, action) => {
       state.loading = false;
       state.isAuthenticated = true;
-      state.user = {
-        id: action.payload.id,
-        email: action.payload.email,
-        role: action.payload.role,
-        firstName: action.payload.firstName || '',
-        lastName: action.payload.lastName || '',
-      };
+      state.user = action.payload;
       state.token = action.payload.token;
       state.error = null;
     },
     registerFailure: (state, action) => {
       state.loading = false;
       state.error = action.payload;
+    },
+
+    // FETCH PROFILE
+    fetchProfileRequest: (state) => {
+      state.loading = true;
+    },
+    fetchProfileSuccess: (state, action) => {
+      state.loading = false;
+      // Aggiorniamo i dati utente mantenendo il token esistente
+      state.user = { ...state.user, ...action.payload };
+      // Aggiorniamo anche il localStorage
+      localStorage.setItem('user', JSON.stringify(state.user));
+    },
+    fetchProfileFailure: (state, action) => {
+      state.loading = false; 
+      console.error("Errore fetch profilo:", action.payload);
     },
 
     // LOGOUT
@@ -69,7 +72,6 @@ const authSlice = createSlice({
       localStorage.removeItem('user');
     },
 
-    // CLEAR ERROR
     clearError: (state) => {
       state.error = null;
     },
@@ -83,6 +85,9 @@ export const {
   registerRequest,
   registerSuccess,
   registerFailure,
+  fetchProfileRequest,
+  fetchProfileSuccess,
+  fetchProfileFailure,
   logout,
   clearError,
 } = authSlice.actions;

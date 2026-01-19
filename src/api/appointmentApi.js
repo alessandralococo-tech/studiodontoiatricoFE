@@ -32,7 +32,7 @@ export const appointmentApi = {
     return response.data;
   },
 
-  // GET ALL APPOINTMENTS (ADMIN - tutti gli appuntamenti dello studio)
+  // GET ALL APPOINTMENTS
   getAllAppointments: async () => {
     const response = await axiosInstance.get('/appointments/admin');
     return response.data;

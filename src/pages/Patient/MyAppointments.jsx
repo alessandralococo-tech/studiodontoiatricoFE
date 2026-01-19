@@ -58,7 +58,7 @@ const MyAppointments = () => {
   const [showSuccessSnackbar, setShowSuccessSnackbar] = useState(false);
   const [reasonError, setReasonError] = useState(false);
 
-  // NUOVO STATO PER LE TAB (0 = In Programma, 1 = Storico)
+  // NUOVO STATO PER LE TAB
   const [activeTab, setActiveTab] = useState(0);
 
   useEffect(() => {
