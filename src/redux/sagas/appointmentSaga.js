@@ -9,12 +9,12 @@ import {
   fetchMyAppointmentsRequest,
   fetchMyAppointmentsSuccess,
   fetchMyAppointmentsFailure,
-  fetchDoctorAppointmentsRequest, // NUOVO
-  fetchDoctorAppointmentsSuccess, // NUOVO
-  fetchDoctorAppointmentsFailure, // NUOVO
-  updateAppointmentStatusRequest, // NUOVO
-  updateAppointmentStatusSuccess, // NUOVO
-  updateAppointmentStatusFailure, // NUOVO
+  fetchDoctorAppointmentsRequest,
+  fetchDoctorAppointmentsSuccess,
+  fetchDoctorAppointmentsFailure,
+  updateAppointmentStatusRequest,
+  updateAppointmentStatusSuccess,
+  updateAppointmentStatusFailure,
   cancelAppointmentRequest,
   cancelAppointmentSuccess,
   cancelAppointmentFailure,
@@ -99,7 +99,7 @@ export default function* appointmentSaga() {
   yield takeLatest(createAppointmentRequest.type, createAppointmentSaga);
   yield takeLatest(fetchMyAppointmentsRequest.type, fetchMyAppointmentsSaga);
   
-  // Nuovi watcher per il medico
+  //watcher per il medico
   yield takeLatest(fetchDoctorAppointmentsRequest.type, fetchDoctorAppointmentsSaga);
   yield takeLatest(updateAppointmentStatusRequest.type, updateAppointmentStatusSaga);
   

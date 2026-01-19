@@ -21,6 +21,7 @@ import StarIcon from '@mui/icons-material/Star';
 
 const Home = () => {
   const navigate = useNavigate();
+  // Recuperiamo lo stato dell'autenticazione per decidere cosa far fare al bottone
   const { isAuthenticated, user } = useSelector((state) => state.auth);
   const [currentSlide, setCurrentSlide] = useState(0);
 
@@ -38,14 +39,18 @@ const Home = () => {
     return () => clearInterval(interval);
   }, [carouselImages.length]);
 
+  // Funzione che gestisce il click sul bottone principale
   const handleGetStarted = () => {
     if (isAuthenticated) {
       if (user?.role === 'ROLE_ADMIN') {
+        // Se è medico, va alla dashboard
         navigate('/doctor-dashboard');
       } else {
-        navigate('/doctors');
+        // Se è paziente (o utente generico), va al PROFILO come richiesto
+        navigate('/profile');
       }
     } else {
+      // Se non è loggato, va alla registrazione
       navigate('/register');
     }
   };
@@ -82,7 +87,7 @@ const Home = () => {
 
   return (
     <Box>
-      {/* Hero Section con Carousel */}
+      {/* --- HERO SECTION --- */}
       <Box
         sx={{
           position: 'relative',
@@ -147,6 +152,7 @@ const Home = () => {
               Prenota online la tua visita con i nostri specialisti certificati.
             </Typography>
             <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+              {/* TASTO PRINCIPALE - Porta al Profilo se loggato */}
               <Button
                 variant="contained"
                 size="large"
@@ -169,6 +175,7 @@ const Home = () => {
               >
                 {isAuthenticated ? 'Vai al Tuo Profilo' : 'Inizia Ora'}
               </Button>
+              
               <Button
                 variant="outlined"
                 size="large"
@@ -226,7 +233,7 @@ const Home = () => {
         </Box>
       </Box>
 
-      {/* Statistiche */}
+      {/* --- STATS SECTION --- */}
       <Box sx={{ background: 'linear-gradient(135deg, #F0F9FF 0%, #E0F7FA 100%)', py: 8 }}>
         <Container maxWidth="lg">
           <Grid container spacing={4}>
@@ -264,7 +271,7 @@ const Home = () => {
         </Container>
       </Box>
 
-      {/* Features Section */}
+      {/* --- FEATURES SECTION --- */}
       <Box sx={{ py: 10, background: '#ffffff' }}>
         <Container maxWidth="lg">
           <Box sx={{ textAlign: 'center', mb: 8 }}>
@@ -334,7 +341,7 @@ const Home = () => {
         </Container>
       </Box>
 
-      {/* CTA Section */}
+      {/* --- CTA SECTION --- */}
       <Box
         sx={{
           background: 'linear-gradient(135deg, #00B4D8 0%, #0096C7 100%)',
@@ -370,7 +377,7 @@ const Home = () => {
               },
             }}
           >
-            Prenota Ora
+            {isAuthenticated ? 'Vai al Tuo Profilo' : 'Prenota Ora'}
           </Button>
         </Container>
       </Box>

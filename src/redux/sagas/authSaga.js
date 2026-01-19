@@ -42,14 +42,13 @@ function* loginSaga(action) {
                  decodedToken?.userId || 
                  decodedToken?.patientId;
 
-    // Se l'ID è ancora null, controlliamo il 'sub' solo se è numerico
     if (!userId && decodedToken?.sub && !isNaN(decodedToken.sub)) {
         userId = parseInt(decodedToken.sub, 10);
     }
 
-    // Se non troviamo l'ID, lo lasciamo null invece di mettere -1 o bloccare tutto
+    // Se non troviamo l'ID, lo lasciamo null
     if (!userId) {
-        console.warn("⚠️ ID Utente non trovato nel Login. Si presume che il Backend usi il Token per l'identificazione.");
+        console.warn(" ID Utente non trovato nel Login");
         userId = null;
     }
 

@@ -20,7 +20,7 @@ const authSlice = createSlice({
     loginSuccess: (state, action) => {
       state.loading = false;
       state.isAuthenticated = true;
-      // SALVA TUTTI I DATI DELL'UTENTE, INCLUSI NOME E COGNOME
+      // SALVA TUTTI I DATI DELL'UTENTE
       state.user = {
         id: action.payload.id,
         email: action.payload.email,

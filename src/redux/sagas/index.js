@@ -2,7 +2,6 @@ import { all } from 'redux-saga/effects';
 import authSaga from './authSaga';
 import doctorSaga from './doctorSaga';
 import appointmentSaga from './appointmentSaga';
-// 1. IMPORTA LA SAGA
 import paymentSaga from './paymentSaga';
 
 export default function* rootSaga() {
@@ -10,7 +9,6 @@ export default function* rootSaga() {
     authSaga(),
     doctorSaga(),
     appointmentSaga(),
-    // 2. AGGIUNGI ALL'ARRAY
     paymentSaga(),
   ]);
 }

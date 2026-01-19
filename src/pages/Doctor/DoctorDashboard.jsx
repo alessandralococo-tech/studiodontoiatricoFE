@@ -30,7 +30,7 @@ const DoctorDashboard = () => {
   const { doctorList, loading, error } = useSelector((state) => state.appointments);
   const { user } = useSelector((state) => state.auth);
 
-  // Stato per la data filtro (default: oggi)
+  // Stato per la data filtro
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   
   // Stati per menu azioni

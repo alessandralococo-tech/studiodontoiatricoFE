@@ -18,10 +18,8 @@ axiosInstance.interceptors.request.use(
     // Controllo che il token esista
     if (token && token !== 'undefined' && token !== 'null') {
       
-      //Rimuove eventuali virgolette extra salvate per sbaglio
       token = token.replace(/"/g, '');
       
-      //Se il token salvato ha già "Bearer ", lo togliamo per non metterlo doppio
       if (token.startsWith('Bearer ')) {
          token = token.substring(7);
       }

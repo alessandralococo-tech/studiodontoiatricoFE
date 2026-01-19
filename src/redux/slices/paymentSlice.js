@@ -1,12 +1,12 @@
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
-  paymentMethod: null, // 'PAYPAL' o 'CASH'
+  paymentMethod: null,
   paypalOrderId: null,
   loading: false,
   error: null,
   paymentSuccess: false,
-  paymentList: [], // NUOVO: Lista per salvare i pagamenti scaricati
+  paymentList: [], //Lista per salvare i pagamenti scaricati
 };
 
 const paymentSlice = createSlice({
@@ -86,9 +86,9 @@ export const {
   capturePayPalPaymentRequest,
   capturePayPalPaymentSuccess,
   capturePayPalPaymentFailure,
-  fetchMyPaymentsRequest, // EXPORT
-  fetchMyPaymentsSuccess, // EXPORT
-  fetchMyPaymentsFailure, // EXPORT
+  fetchMyPaymentsRequest,
+  fetchMyPaymentsSuccess,
+  fetchMyPaymentsFailure,
   resetPaymentState,
   clearPaymentError,
 } = paymentSlice.actions;

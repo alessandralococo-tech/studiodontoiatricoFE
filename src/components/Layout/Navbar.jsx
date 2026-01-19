@@ -9,7 +9,6 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import LoginIcon from '@mui/icons-material/Login';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import EventAvailableIcon from '@mui/icons-material/EventAvailable';
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import PersonIcon from '@mui/icons-material/Person';
 
 const ToothIcon = () => (
@@ -43,7 +42,15 @@ const Navbar = () => {
     navigate('/my-appointments');
   };
 
+  const handleProfile = () => {
+    handleMenuClose();
+    navigate('/profile');
+  };
+
   const getUserInitials = () => {
+    if (user?.firstName && user?.lastName) {
+        return `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`.toUpperCase();
+    }
     if (user?.email) {
       return user.email.charAt(0).toUpperCase();
     }
@@ -51,283 +58,58 @@ const Navbar = () => {
   };
 
   return (
-    <AppBar 
-      position="sticky"
-      elevation={0}
-      sx={{ 
-        background: 'linear-gradient(90deg, #FFFFFF 0%, #F0F9FF 100%)',
-        boxShadow: '0 2px 12px rgba(0, 180, 216, 0.1)',
-        borderBottom: '1px solid #CAF0F8',
-        borderRadius: 0
-      }}
-    >
+    <AppBar position="sticky" elevation={0} sx={{ background: 'linear-gradient(90deg, #FFFFFF 0%, #F0F9FF 100%)', boxShadow: '0 2px 12px rgba(0, 180, 216, 0.1)', borderBottom: '1px solid #CAF0F8', borderRadius: 0 }}>
       <Toolbar sx={{ py: 1.5, px: { xs: 2, md: 4 } }}>
-        {/* Logo e Brand */}
-        <Box 
-          sx={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            flexGrow: 1, 
-            cursor: 'pointer',
-            transition: 'all 0.2s',
-            '&:hover': {
-              transform: 'scale(1.02)',
-            }
-          }}
-          onClick={() => navigate('/')}
-        >
-          <Box
-            sx={{
-              width: 48,
-              height: 48,
-              borderRadius: '12px',
-              background: 'linear-gradient(135deg, #00B4D8 0%, #0096C7 100%)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              mr: 2,
-              color: '#ffffff',
-              boxShadow: '0 4px 12px rgba(0, 180, 216, 0.3)',
-            }}
-          >
+        <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1, cursor: 'pointer', transition: 'all 0.2s', '&:hover': { transform: 'scale(1.02)' } }} onClick={() => navigate('/')}>
+          <Box sx={{ width: 48, height: 48, borderRadius: '12px', background: 'linear-gradient(135deg, #00B4D8 0%, #0096C7 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', mr: 2, color: '#ffffff', boxShadow: '0 4px 12px rgba(0, 180, 216, 0.3)' }}>
             <ToothIcon />
           </Box>
           <Box>
-            <Typography 
-              variant="h5" 
-              component="div" 
-              sx={{ 
-                fontWeight: 700,
-                letterSpacing: '-0.5px',
-                background: 'linear-gradient(135deg, #00B4D8 0%, #0096C7 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                lineHeight: 1.2
-              }}
-            >
-              SmileCare
-            </Typography>
-            <Typography 
-              variant="caption" 
-              sx={{ 
-                color: '#48CAE4',
-                fontWeight: 600,
-                letterSpacing: '1px'
-              }}
-            >
-              STUDIO DENTISTICO
-            </Typography>
+            <Typography variant="h5" component="div" sx={{ fontWeight: 700, letterSpacing: '-0.5px', background: 'linear-gradient(135deg, #00B4D8 0%, #0096C7 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', lineHeight: 1.2 }}>SmileCare</Typography>
+            <Typography variant="caption" sx={{ color: '#48CAE4', fontWeight: 600, letterSpacing: '1px' }}>STUDIO DENTISTICO</Typography>
           </Box>
         </Box>
 
-        {/* Navigation */}
         {isAuthenticated ? (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            
-            {/* User Buttons */}
             {user?.role === 'ROLE_USER' && (
-              <Button 
-                color="inherit" 
-                onClick={() => navigate('/doctors')}
-                startIcon={<CalendarMonthIcon />}
-                sx={{ 
-                  fontWeight: 600,
-                  px: 2.5,
-                  py: 1,
-                  borderRadius: '12px',
-                  color: '#00B4D8',
-                  bgcolor: '#F0F9FF',
-                  border: '1px solid #CAF0F8',
-                  '&:hover': {
-                    bgcolor: '#E0F7FA',
-                    borderColor: '#00B4D8',
-                    transform: 'translateY(-2px)',
-                    boxShadow: '0 4px 12px rgba(0, 180, 216, 0.2)'
-                  },
-                  transition: 'all 0.2s'
-                }}
-              >
-                Prenota
-              </Button>
+              <Button color="inherit" onClick={() => navigate('/doctors')} startIcon={<CalendarMonthIcon />} sx={{ fontWeight: 600, px: 2.5, py: 1, borderRadius: '12px', color: '#00B4D8', bgcolor: '#F0F9FF', border: '1px solid #CAF0F8', '&:hover': { bgcolor: '#E0F7FA', borderColor: '#00B4D8', transform: 'translateY(-2px)', boxShadow: '0 4px 12px rgba(0, 180, 216, 0.2)' }, transition: 'all 0.2s' }}>Prenota</Button>
             )}
-
-            {/* Admin Button */}
             {user?.role === 'ROLE_ADMIN' && (
-              <Button 
-                color="inherit" 
-                onClick={() => navigate('/doctor-dashboard')}
-                startIcon={<DashboardIcon />}
-                sx={{ 
-                  fontWeight: 600,
-                  px: 2.5,
-                  py: 1,
-                  borderRadius: '12px',
-                  color: '#00B4D8',
-                  bgcolor: '#F0F9FF',
-                  border: '1px solid #CAF0F8',
-                  '&:hover': {
-                    bgcolor: '#E0F7FA',
-                    borderColor: '#00B4D8',
-                    transform: 'translateY(-2px)',
-                    boxShadow: '0 4px 12px rgba(0, 180, 216, 0.2)'
-                  },
-                  transition: 'all 0.2s'
-                }}
-              >
-                Dashboard
-              </Button>
+              <Button color="inherit" onClick={() => navigate('/doctor-dashboard')} startIcon={<DashboardIcon />} sx={{ fontWeight: 600, px: 2.5, py: 1, borderRadius: '12px', color: '#00B4D8', bgcolor: '#F0F9FF', border: '1px solid #CAF0F8', '&:hover': { bgcolor: '#E0F7FA', borderColor: '#00B4D8', transform: 'translateY(-2px)', boxShadow: '0 4px 12px rgba(0, 180, 216, 0.2)' }, transition: 'all 0.2s' }}>Dashboard</Button>
             )}
 
-            {/* Profile Menu */}
-            <IconButton
-              onClick={handleMenuOpen}
-              sx={{
-                ml: 1,
-                border: '2px solid #CAF0F8',
-                bgcolor: '#F0F9FF',
-                '&:hover': {
-                  bgcolor: '#E0F7FA',
-                  borderColor: '#00B4D8',
-                  transform: 'scale(1.05)'
-                },
-                transition: 'all 0.2s'
-              }}
-            >
-              <Avatar 
-                sx={{ 
-                  width: 36, 
-                  height: 36,
-                  bgcolor: '#00B4D8',
-                  color: '#ffffff',
-                  fontWeight: 700,
-                  fontSize: '1rem'
-                }}
-              >
-                {getUserInitials()}
-              </Avatar>
+            <IconButton onClick={handleMenuOpen} sx={{ ml: 1, border: '2px solid #CAF0F8', bgcolor: '#F0F9FF', '&:hover': { bgcolor: '#E0F7FA', borderColor: '#00B4D8', transform: 'scale(1.05)' }, transition: 'all 0.2s' }}>
+              <Avatar sx={{ width: 36, height: 36, bgcolor: '#00B4D8', color: '#ffffff', fontWeight: 700, fontSize: '1rem' }}>{getUserInitials()}</Avatar>
             </IconButton>
 
-            <Menu
-              anchorEl={anchorEl}
-              open={Boolean(anchorEl)}
-              onClose={handleMenuClose}
-              PaperProps={{
-                sx: {
-                  mt: 1.5,
-                  minWidth: 220,
-                  borderRadius: '12px',
-                  boxShadow: '0 8px 32px rgba(0, 180, 216, 0.15)',
-                  border: '1px solid #CAF0F8'
-                }
-              }}
-            >
+            <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose} PaperProps={{ sx: { mt: 1.5, minWidth: 220, borderRadius: '12px', boxShadow: '0 8px 32px rgba(0, 180, 216, 0.15)', border: '1px solid #CAF0F8' } }}>
               <Box sx={{ px: 2, py: 1.5 }}>
-                <Typography variant="body2" sx={{ fontWeight: 700, color: '#00B4D8' }}>
-                  {user?.email}
-                </Typography>
-                <Typography variant="caption" sx={{ color: '#666' }}>
-                  {user?.role === 'ROLE_ADMIN' ? 'Medico' : 'Paziente'}
-                </Typography>
+                <Typography variant="body2" sx={{ fontWeight: 700, color: '#00B4D8' }}>{user?.email}</Typography>
+                <Typography variant="caption" sx={{ color: '#666' }}>{user?.role === 'ROLE_ADMIN' ? 'Medico' : 'Paziente'}</Typography>
               </Box>
               <Divider />
               
               {user?.role === 'ROLE_USER' && (
-                <MenuItem 
-                  onClick={handleMyAppointments}
-                  sx={{
-                    py: 1.5,
-                    '&:hover': {
-                      bgcolor: '#F0F9FF',
-                      color: '#00B4D8'
-                    }
-                  }}
-                >
-                  <EventAvailableIcon sx={{ mr: 1.5, fontSize: 20 }} />
-                  I Miei Appuntamenti
+                <MenuItem onClick={handleMyAppointments} sx={{ py: 1.5, '&:hover': { bgcolor: '#F0F9FF', color: '#00B4D8' } }}>
+                  <EventAvailableIcon sx={{ mr: 1.5, fontSize: 20 }} /> I Miei Appuntamenti
                 </MenuItem>
               )}
               
-              <MenuItem 
-                onClick={handleMenuClose}
-                sx={{
-                  py: 1.5,
-                  '&:hover': {
-                    bgcolor: '#F0F9FF',
-                    color: '#00B4D8'
-                  }
-                }}
-              >
-                <PersonIcon sx={{ mr: 1.5, fontSize: 20 }} />
-                Profilo
+              <MenuItem onClick={handleProfile} sx={{ py: 1.5, '&:hover': { bgcolor: '#F0F9FF', color: '#00B4D8' } }}>
+                <PersonIcon sx={{ mr: 1.5, fontSize: 20 }} /> Profilo
               </MenuItem>
               
               <Divider />
-              
-              <MenuItem 
-                onClick={handleLogout}
-                sx={{
-                  py: 1.5,
-                  color: '#d32f2f',
-                  '&:hover': {
-                    bgcolor: '#ffebee',
-                  }
-                }}
-              >
-                <LogoutIcon sx={{ mr: 1.5, fontSize: 20 }} />
-                Logout
+              <MenuItem onClick={handleLogout} sx={{ py: 1.5, color: '#d32f2f', '&:hover': { bgcolor: '#ffebee' } }}>
+                <LogoutIcon sx={{ mr: 1.5, fontSize: 20 }} /> Logout
               </MenuItem>
             </Menu>
           </Box>
         ) : (
           <Box sx={{ display: 'flex', gap: 2 }}>
-            {/* Login Button */}
-            <Button 
-              color="inherit" 
-              onClick={() => navigate('/login')}
-              startIcon={<LoginIcon />}
-              sx={{ 
-                fontWeight: 600,
-                px: 3,
-                py: 1.2,
-                borderRadius: '12px',
-                border: '2px solid #CAF0F8',
-                color: '#00B4D8',
-                bgcolor: '#F0F9FF',
-                '&:hover': {
-                  bgcolor: '#E0F7FA',
-                  borderColor: '#00B4D8',
-                  transform: 'translateY(-2px)',
-                  boxShadow: '0 4px 12px rgba(0, 180, 216, 0.15)'
-                },
-                transition: 'all 0.2s'
-              }}
-            >
-              Login
-            </Button>
-
-            {/* Register Button */}
-            <Button 
-              color="inherit" 
-              onClick={() => navigate('/register')}
-              startIcon={<PersonAddIcon />}
-              sx={{ 
-                fontWeight: 700,
-                px: 3,
-                py: 1.2,
-                borderRadius: '12px',
-                bgcolor: '#00B4D8',
-                color: '#ffffff',
-                boxShadow: '0 4px 12px rgba(0, 180, 216, 0.3)',
-                '&:hover': {
-                  bgcolor: '#0096C7',
-                  transform: 'translateY(-3px)',
-                  boxShadow: '0 6px 20px rgba(0, 180, 216, 0.4)'
-                },
-                transition: 'all 0.2s'
-              }}
-            >
-              Registrati
-            </Button>
+            <Button color="inherit" onClick={() => navigate('/login')} startIcon={<LoginIcon />} sx={{ fontWeight: 600, px: 3, py: 1.2, borderRadius: '12px', border: '2px solid #CAF0F8', color: '#00B4D8', bgcolor: '#F0F9FF', '&:hover': { bgcolor: '#E0F7FA', borderColor: '#00B4D8', transform: 'translateY(-2px)', boxShadow: '0 4px 12px rgba(0, 180, 216, 0.15)' }, transition: 'all 0.2s' }}>Login</Button>
+            <Button color="inherit" onClick={() => navigate('/register')} startIcon={<PersonAddIcon />} sx={{ fontWeight: 700, px: 3, py: 1.2, borderRadius: '12px', bgcolor: '#00B4D8', color: '#ffffff', boxShadow: '0 4px 12px rgba(0, 180, 216, 0.3)', '&:hover': { bgcolor: '#0096C7', transform: 'translateY(-3px)', boxShadow: '0 6px 20px rgba(0, 180, 216, 0.4)' }, transition: 'all 0.2s' }}>Registrati</Button>
           </Box>
         )}
       </Toolbar>

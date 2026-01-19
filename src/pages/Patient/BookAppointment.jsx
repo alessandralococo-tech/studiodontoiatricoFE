@@ -78,7 +78,6 @@ const BookAppointment = () => {
 
   const { selectedDoctor } = useSelector((state) => state.doctors);
   
-  // MODIFICA IMPORTANTE: Aggiungiamo 'list' per recuperare l'appuntamento appena creato
   const { availableSlots, loading, error, bookingSuccess, list } = useSelector((state) => state.appointments);
   
   const { user, isAuthenticated } = useSelector((state) => state.auth);
@@ -127,7 +126,7 @@ const BookAppointment = () => {
       // SE ABBIAMO SCELTO PAYPAL E STIAMO PROCESSANDO:
       if (isProcessingPayPal) {
         
-        // Recuperiamo l'ultimo appuntamento creato (che Redux ha aggiunto alla lista)
+        // Recuperiamo l'ultimo appuntamento creato
         const lastCreatedAppointment = list[list.length - 1];
 
         // Verifichiamo che esista e abbia un ID valido
@@ -211,7 +210,7 @@ const BookAppointment = () => {
   const handleBack = () => setActiveStep((prev) => prev - 1);
 
   const handleSubmit = () => {
-    // 1. Recupero robusto dell'ID paziente (lasciamo che il backend gestisca se è null)
+    // Recupero dell'ID paziente
     let patientId = user?.id;
     if (!patientId) {
       const stored = localStorage.getItem('user');

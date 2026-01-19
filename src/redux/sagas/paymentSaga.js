@@ -6,9 +6,9 @@ import {
   capturePayPalPaymentRequest,
   capturePayPalPaymentSuccess,
   capturePayPalPaymentFailure,
-  fetchMyPaymentsRequest, // IMPORT
-  fetchMyPaymentsSuccess, // IMPORT
-  fetchMyPaymentsFailure  // IMPORT
+  fetchMyPaymentsRequest,
+  fetchMyPaymentsSuccess,
+  fetchMyPaymentsFailure
 } from '../slices/paymentSlice';
 import paymentApi from '../../api/paymentApi';
 
@@ -53,7 +53,7 @@ function* capturePayPalPaymentSaga(action) {
   }
 }
 
-// NUOVO: FETCH MY PAYMENTS SAGA
+// FETCH MY PAYMENTS SAGA
 function* fetchMyPaymentsSaga() {
   try {
     const response = yield call(paymentApi.getMyPayments);

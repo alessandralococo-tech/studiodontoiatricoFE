@@ -2,13 +2,13 @@ import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
   list: [], // Per il paziente
-  doctorList: [], // NUOVO: Per il medico
+  doctorList: [], // Per il medico
   availableSlots: [],
   loading: false,
   error: null,
   bookingSuccess: false,
   cancelSuccess: false,
-  updateSuccess: false, // Per notificare aggiornamenti (es. cambio stato)
+  updateSuccess: false, // Per notificare aggiornamenti
 };
 
 const appointmentSlice = createSlice({
@@ -74,7 +74,7 @@ const appointmentSlice = createSlice({
       state.error = action.payload;
     },
 
-    // --- UPDATE APPOINTMENT STATUS (NUOVO - MEDICO) ---
+    // --- UPDATE APPOINTMENT STATUS ---
     updateAppointmentStatusRequest: (state) => {
       state.loading = true;
       state.error = null;
@@ -131,12 +131,12 @@ export const {
   fetchMyAppointmentsRequest,
   fetchMyAppointmentsSuccess,
   fetchMyAppointmentsFailure,
-  fetchDoctorAppointmentsRequest, // Export
-  fetchDoctorAppointmentsSuccess, // Export
-  fetchDoctorAppointmentsFailure, // Export
-  updateAppointmentStatusRequest, // Export
-  updateAppointmentStatusSuccess, // Export
-  updateAppointmentStatusFailure, // Export
+  fetchDoctorAppointmentsRequest,
+  fetchDoctorAppointmentsSuccess,
+  fetchDoctorAppointmentsFailure,
+  updateAppointmentStatusRequest,
+  updateAppointmentStatusSuccess,
+  updateAppointmentStatusFailure,
   cancelAppointmentRequest,
   cancelAppointmentSuccess,
   cancelAppointmentFailure,

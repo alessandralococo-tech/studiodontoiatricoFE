@@ -483,7 +483,6 @@ const MyAppointments = () => {
 
       </Container>
 
-      {/* Dialogs... rimangono invariati */}
       {selectedAppointment && (
         <Dialog 
           open={showDetailsDialog} 
@@ -549,7 +548,6 @@ const MyAppointments = () => {
         </Dialog>
       )}
 
-      {/* Altri dialogs... (Cancel, Note, Snackbar) rimangono invariati */}
       <Dialog open={showCancelDialog} onClose={handleCloseCancel} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 4 } }}>
         <DialogTitle sx={{ background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)', color: '#ffffff', fontWeight: 700, py: 3 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>

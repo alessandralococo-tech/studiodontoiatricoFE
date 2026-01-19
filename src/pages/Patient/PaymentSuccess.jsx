@@ -15,11 +15,11 @@ const PaymentSuccess = () => {
   const { loading, error, paymentSuccess } = useSelector((state) => state.payment);
   const [countdown, setCountdown] = useState(3);
   
-  // Ref per evitare che la cattura venga chiamata due volte (React.StrictMode)
+  // Ref per evitare che la cattura venga chiamata due volte
   const captureAttempted = useRef(false);
 
   useEffect(() => {
-    // Se c'è un token e non abbiamo ancora provato a catturare, fallo ora.
+    // Se c'è un token
     if (token && !captureAttempted.current && !paymentSuccess) {
       console.log("Token trovato, tentativo di cattura manuale...", token);
       captureAttempted.current = true;
@@ -28,7 +28,7 @@ const PaymentSuccess = () => {
   }, [token, dispatch, paymentSuccess]);
 
   useEffect(() => {
-    // Se il pagamento è stato confermato con successo (o se non c'era token, redirect di sicurezza)
+    // Se il pagamento è stato confermato con successo
     if (paymentSuccess || !token) {
       const timer = setInterval(() => {
         setCountdown((prev) => {
@@ -67,7 +67,7 @@ const PaymentSuccess = () => {
           }}
         >
           {loading ? (
-            // Stato di Caricamento (Cattura in corso)
+            // Stato di Caricamento
             <Box>
               <CircularProgress size={60} sx={{ color: '#00B4D8', mb: 3 }} />
               <Typography variant="h5" sx={{ fontWeight: 600, color: '#333' }}>

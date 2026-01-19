@@ -40,8 +40,6 @@ const DoctorsList = () => {
   }, [dispatch]);
 
   // --- FUNZIONI HELPER PER RECUPERARE I DATI DAL DB IN MODO SICURO ---
-  // Queste funzioni controllano diverse varianti del nome della colonna
-  // per adattarsi a come il backend potrebbe inviare i dati (snake_case o camelCase)
 
   const getDoctorName = (doctor) => {
     if (!doctor) return '';
@@ -55,7 +53,6 @@ const DoctorsList = () => {
 
   const getDoctorEmail = (doctor) => {
     if (!doctor) return '';
-    // Cerca 'email' (come nel tuo screenshot) o varianti comuni
     return doctor.email || doctor.mail || doctor.emailAddress || 'Email non disponibile';
   };
 
@@ -66,8 +63,7 @@ const DoctorsList = () => {
   // -------------------------------------------------------------------
 
   const handleSelectDoctor = (doctor) => {
-    // Quando selezioniamo il dottore, passiamo i dati normalizzati
-    // così nella pagina di prenotazione non avremo problemi
+    // Quando selezioniamo il dottore passiamo i dati normalizzati
     const normalizedDoctor = {
       ...doctor,
       name: getDoctorName(doctor),
