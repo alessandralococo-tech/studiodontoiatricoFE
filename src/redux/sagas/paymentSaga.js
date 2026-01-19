@@ -68,5 +68,5 @@ function* fetchMyPaymentsSaga() {
 export default function* paymentSaga() {
   yield takeLatest(createPayPalPaymentRequest.type, createPayPalPaymentSaga);
   yield takeLatest(capturePayPalPaymentRequest.type, capturePayPalPaymentSaga);
-  yield takeLatest(fetchMyPaymentsRequest.type, fetchMyPaymentsSaga); // ASCOLTA LA NUOVA AZIONE
+  yield takeLatest(fetchMyPaymentsRequest.type, fetchMyPaymentsSaga);
 }
