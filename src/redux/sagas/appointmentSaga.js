@@ -55,10 +55,9 @@ function* fetchMyAppointmentsSaga() {
   }
 }
 
-// --- NUOVO: FETCH DOCTOR APPOINTMENTS SAGA (Medico) ---
+// FETCH DOCTOR APPOINTMENTS SAGA (Medico)
 function* fetchDoctorAppointmentsSaga(action) {
   try {
-    // action.payload può contenere { date: 'YYYY-MM-DD' } opzionale
     const date = action.payload?.date || null;
     const appointments = yield call(appointmentApi.getDoctorAppointments, date);
     yield put(fetchDoctorAppointmentsSuccess(appointments));
@@ -68,7 +67,7 @@ function* fetchDoctorAppointmentsSaga(action) {
   }
 }
 
-// --- NUOVO: UPDATE APPOINTMENT STATUS SAGA (Medico) ---
+// UPDATE APPOINTMENT STATUS SAGA (Medico)
 function* updateAppointmentStatusSaga(action) {
   try {
     const { id, status } = action.payload;
@@ -99,7 +98,7 @@ export default function* appointmentSaga() {
   yield takeLatest(createAppointmentRequest.type, createAppointmentSaga);
   yield takeLatest(fetchMyAppointmentsRequest.type, fetchMyAppointmentsSaga);
   
-  //watcher per il medico
+  // WATCHER PER IL MEDICO
   yield takeLatest(fetchDoctorAppointmentsRequest.type, fetchDoctorAppointmentsSaga);
   yield takeLatest(updateAppointmentStatusRequest.type, updateAppointmentStatusSaga);
   

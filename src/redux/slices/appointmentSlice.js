@@ -15,7 +15,7 @@ const appointmentSlice = createSlice({
   name: 'appointments',
   initialState,
   reducers: {
-    // --- FETCH SLOTS ---
+    // FETCH SLOTS
     fetchAvailableSlotsRequest: (state) => {
       state.loading = true;
       state.error = null;
@@ -29,7 +29,7 @@ const appointmentSlice = createSlice({
       state.error = action.payload;
     },
 
-    // --- CREATE APPOINTMENT ---
+    // CREATE APPOINTMENT
     createAppointmentRequest: (state) => {
       state.loading = true;
       state.error = null;
@@ -46,7 +46,7 @@ const appointmentSlice = createSlice({
       state.error = action.payload;
     },
 
-    // --- FETCH MY APPOINTMENTS (PAZIENTE) ---
+    // FETCH MY APPOINTMENTS (PAZIENTE)
     fetchMyAppointmentsRequest: (state) => {
       state.loading = true;
       state.error = null;
@@ -60,7 +60,7 @@ const appointmentSlice = createSlice({
       state.error = action.payload;
     },
 
-    // --- FETCH DOCTOR APPOINTMENTS (NUOVO - MEDICO) ---
+    // FETCH DOCTOR APPOINTMENTS (MEDICO)
     fetchDoctorAppointmentsRequest: (state) => {
       state.loading = true;
       state.error = null;
@@ -74,7 +74,7 @@ const appointmentSlice = createSlice({
       state.error = action.payload;
     },
 
-    // --- UPDATE APPOINTMENT STATUS ---
+    // UPDATE APPOINTMENT STATUS
     updateAppointmentStatusRequest: (state) => {
       state.loading = true;
       state.error = null;
@@ -94,7 +94,7 @@ const appointmentSlice = createSlice({
       state.error = action.payload;
     },
 
-    // --- CANCEL APPOINTMENT ---
+    // CANCEL APPOINTMENT
     cancelAppointmentRequest: (state) => {
       state.loading = true;
       state.error = null;
@@ -104,7 +104,7 @@ const appointmentSlice = createSlice({
       state.loading = false;
       state.cancelSuccess = true;
       const id = action.payload;
-      // Rimuovi da entrambe le liste per sicurezza
+      // Rimuovi da entrambe le liste
       state.list = state.list.filter(app => app.id !== id);
       state.doctorList = state.doctorList.filter(app => app.id !== id);
     },

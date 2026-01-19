@@ -6,9 +6,9 @@ import {
   registerRequest,
   registerSuccess,
   registerFailure,
-  fetchProfileRequest, // IMPORT
-  fetchProfileSuccess, // IMPORT
-  fetchProfileFailure  // IMPORT
+  fetchProfileRequest,
+  fetchProfileSuccess,
+  fetchProfileFailure
 } from '../slices/authSlice';
 import authApi from '../../api/authApi';
 
@@ -42,12 +42,12 @@ function* loginSaga(action) {
     };
 
     localStorage.setItem('token', token);
-    // Salviamo temporaneamente i dati base, poi fetchProfile li arricchirà
+    // Salviamo temporaneamente i dati base
     localStorage.setItem('user', JSON.stringify(basicUserData));
 
     yield put(loginSuccess({ ...basicUserData, token }));
     
-    // SUBITO DOPO IL LOGIN, SCARICHIAMO I DATI COMPLETI
+    // Prende i dati completi dopo il login
     yield put(fetchProfileRequest());
 
   } catch (error) {
@@ -72,7 +72,6 @@ function* registerSaga(action) {
     localStorage.setItem('user', JSON.stringify(userData));
 
     yield put(registerSuccess({ ...userData, token }));
-    // Anche qui potremmo fare fetchProfile per sicurezza
     yield put(fetchProfileRequest());
 
   } catch (error) {
@@ -80,7 +79,7 @@ function* registerSaga(action) {
   }
 }
 
-// --- NUOVA SAGA: FETCH PROFILE ---
+// FETCH PROFILE
 function* fetchProfileSaga() {
   try {
     // Recuperiamo lo stato attuale per sapere il ruolo
@@ -94,18 +93,18 @@ function* fetchProfileSaga() {
       const response = yield call(authApi.getDoctorProfile);
       profileData = response; 
     } else {
-      // Se è paziente (default)
+      // Se è paziente
       const response = yield call(authApi.getPatientProfile);
       profileData = response;
     }
 
-    // NORMALIZZAZIONE DATI: Backend usa "name/surname", Frontend usa "firstName/lastName"
+    // NORMALIZZAZIONE DATI
     const normalizedData = {
       id: profileData.id,
       email: profileData.email,
-      firstName: profileData.name,      // MAPPING
-      lastName: profileData.surname,    // MAPPING
-      phone: profileData.phone || '',   // Solo per pazienti
+      firstName: profileData.name,
+      lastName: profileData.surname,
+      phone: profileData.phone || '',
       specialization: profileData.specialization || '', // Solo per medici
       birth: profileData.birth || ''
     };
@@ -120,5 +119,5 @@ function* fetchProfileSaga() {
 export default function* authSaga() {
   yield takeLatest(loginRequest.type, loginSaga);
   yield takeLatest(registerRequest.type, registerSaga);
-  yield takeLatest(fetchProfileRequest.type, fetchProfileSaga); // WATCHER
+  yield takeLatest(fetchProfileRequest.type, fetchProfileSaga);
 }
