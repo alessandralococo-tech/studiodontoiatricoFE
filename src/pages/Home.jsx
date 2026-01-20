@@ -81,7 +81,7 @@ const Home = () => {
   const stats = [
     { number: '15+', label: 'Anni di Esperienza', icon: <VerifiedIcon /> },
     { number: '10K+', label: 'Pazienti Soddisfatti', icon: <LocalHospitalIcon /> },
-    { number: '5', label: 'Specialisti Certificati', icon: <StarIcon /> },
+    { number: '4', label: 'Specialisti Certificati', icon: <StarIcon /> },
     { number: '98%', label: 'Tasso di Soddisfazione', icon: <StarIcon /> },
   ];
 
@@ -287,19 +287,18 @@ const Home = () => {
             </Typography>
           </Box>
 
-          <Grid container spacing={4} alignItems="stretch" justifyContent="center">
+          <Grid container spacing={4} justifyContent="center">
             {features.map((feature, index) => (
               <Grid item xs={12} sm={6} md={3} key={index} sx={{ display: 'flex' }}>
                 <Card
                   sx={{
-                    width: '100%',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'flex-start',
                     textAlign: 'center',
                     p: 4,
-                    height: '100%',
+                    flex: 1,
                     border: '2px solid #E0F7FA',
                     bgcolor: '#F0F9FF',
                     transition: 'all 0.3s ease',

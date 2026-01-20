@@ -2,18 +2,8 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import {
-  Container,
-  Typography,
-  Grid,
-  Card,
-  CardContent,
-  CardActions,
-  Button,
-  Alert,
-  Box,
-  Paper,
-  CardMedia,
-  Tooltip,
+  Container, Typography, Grid, Card, CardContent, CardActions,
+  Button, Alert, Box, Paper, CardMedia, Tooltip, Chip, Avatar
 } from '@mui/material';
 import { fetchDoctorsRequest, selectDoctor } from '../../redux/slices/doctorSlice';
 import LoadingSpinner from '../../components/LoadingSpinner';
@@ -21,399 +11,225 @@ import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
 import EmailIcon from '@mui/icons-material/Email';
 import HowToRegIcon from '@mui/icons-material/HowToReg';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+import PersonIcon from '@mui/icons-material/Person';
+import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
+
+// STILI & ASSETS
+const doctorImages = [
+  'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=500&h=500&fit=crop',
+  'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=500&h=500&fit=crop',
+  'https://images.unsplash.com/photo-1594824476967-48c8b964273f?w=500&h=500&fit=crop',
+  'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=500&h=500&fit=crop',
+  'https://images.unsplash.com/photo-1666214280557-f1b5022eb634?w=500&h=500&fit=crop',
+];
 
 const DoctorsList = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { list, loading, error } = useSelector((state) => state.doctors);
 
-  const doctorImages = [
-    'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400&h=400&fit=crop',
-    'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400&h=400&fit=crop',
-    'https://images.unsplash.com/photo-1594824476967-48c8b964273f?w=400&h=400&fit=crop',
-    'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=400&h=400&fit=crop',
-    'https://images.unsplash.com/photo-1666214280557-f1b5022eb634?w=400&h=400&fit=crop',
-  ];
-
   useEffect(() => {
     dispatch(fetchDoctorsRequest());
   }, [dispatch]);
 
-  // --- FUNZIONI HELPER ---
+  // HELPER NORMALIZZAZIONE DATI
+  // Queste funzioni gestiscono le varianti dei nomi dei campi dal backend
+  const getDoctorName = (doc) => doc.firstName || doc.first_name || doc.name || 'Nome';
+  const getDoctorSurname = (doc) => doc.lastName || doc.last_name || doc.surname || 'Cognome';
+  const getDoctorEmail = (doc) => doc.email || doc.mail || doc.emailAddress || 'Email non disponibile';
+  const getDoctorSpecialization = (doc) => doc.specialization || doc.speciality || 'Odontoiatria Generale';
 
-  const getDoctorName = (doctor) => {
-    if (!doctor) return '';
-    return doctor.firstName || doctor.first_name || doctor.name || 'Nome';
-  };
-
-  const getDoctorSurname = (doctor) => {
-    if (!doctor) return '';
-    return doctor.lastName || doctor.last_name || doctor.surname || 'Cognome';
-  };
-
-  const getDoctorEmail = (doctor) => {
-    if (!doctor) return '';
-    return doctor.email || doctor.mail || doctor.emailAddress || 'Email non disponibile';
-  };
-
-  const getDoctorSpecialization = (doctor) => {
-    if (!doctor) return '';
-    return doctor.specialization || doctor.speciality || 'Medico Generico';
-  };
-
+  // AZIONI
+  
   const handleSelectDoctor = (doctor) => {
-    // Quando selezioniamo il dottore passiamo i dati normalizzati
+    // In questo modo BookAppointment troverà sempre le proprietà .name, .surname, .email
     const normalizedDoctor = {
-      ...doctor,
+      id: doctor.id,
       name: getDoctorName(doctor),
       surname: getDoctorSurname(doctor),
       email: getDoctorEmail(doctor),
-      specialization: getDoctorSpecialization(doctor)
+      specialization: getDoctorSpecialization(doctor),
+      image: doctorImages[doctor.id % doctorImages.length] // Passiamo anche l'immagine se serve
     };
+
+    console.log("Medico Selezionato (Normalizzato):", normalizedDoctor); // Debug
     dispatch(selectDoctor(normalizedDoctor));
     navigate('/book-appointment');
   };
 
   const handleNoPreference = () => {
     if (list && list.length > 0) {
-      const autoSelectedDoctor = list[0];
-      
-      dispatch(selectDoctor({
-        id: autoSelectedDoctor.id,
-        name: getDoctorName(autoSelectedDoctor),
-        surname: getDoctorSurname(autoSelectedDoctor),
-        specialization: getDoctorSpecialization(autoSelectedDoctor),
-        email: getDoctorEmail(autoSelectedDoctor),
-        isAutoSelected: true
-      }));
-      
-      navigate('/book-appointment');
+      // Seleziona il primo disponibile come fallback
+      const autoSelectedDoctor = list[0]; 
+      handleSelectDoctor({
+        ...autoSelectedDoctor,
+        specialization: "Medico Assegnato dallo Studio" // Override visuale
+      });
     } else {
-      alert('Nessun medico disponibile al momento. Riprova più tardi.');
+      alert('Nessun medico disponibile al momento.');
     }
   };
 
-  if (loading) {
-    return <LoadingSpinner />;
-  }
+  if (loading) return <LoadingSpinner />;
 
   return (
-    <Box 
-      sx={{ 
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #F0F9FF 0%, #E0F7FA 100%)',
-        py: 6
-      }}
-    >
+    <Box sx={{ minHeight: '100vh', background: 'radial-gradient(circle at top left, #F0F9FF, #E0F7FA)', py: 8 }}>
       <Container maxWidth="lg">
-        <Paper 
-          elevation={0}
-          sx={{ 
-            p: { xs: 3, md: 5 },
-            borderRadius: 4,
-            boxShadow: '0 10px 40px rgba(0, 180, 216, 0.1)',
-            background: '#ffffff'
-          }}
-        >
-          {/* Header */}
-          <Box sx={{ textAlign: 'center', mb: 5 }}>
-            <Box 
-              sx={{ 
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: 80,
-                height: 80,
-                borderRadius: '50%',
-                background: 'linear-gradient(135deg, #00B4D8 0%, #0096C7 100%)',
-                mb: 3,
-                boxShadow: '0 8px 24px rgba(0, 180, 216, 0.3)'
-              }}
-            >
-              <MedicalServicesIcon sx={{ fontSize: 40, color: '#ffffff' }} />
-            </Box>
-            <Typography 
-              variant="h3" 
-              component="h1" 
-              gutterBottom
-              sx={{
-                fontWeight: 700,
-                color: '#00B4D8',
-                mb: 2
-              }}
-            >
-              I Nostri Specialisti
-            </Typography>
-            <Typography variant="h6" sx={{ color: '#48CAE4', fontWeight: 600 }}>
-              Scegli il professionista più adatto alle tue esigenze
-            </Typography>
+        
+        {/* HEADER */}
+        <Box sx={{ textAlign: 'center', mb: 6 }}>
+          <Box 
+            sx={{ 
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+              width: 80, height: 80, borderRadius: '50%',
+              background: 'linear-gradient(135deg, #00B4D8 0%, #0096C7 100%)',
+              mb: 3, boxShadow: '0 8px 24px rgba(0, 180, 216, 0.3)'
+            }}
+          >
+            <MedicalServicesIcon sx={{ fontSize: 40, color: '#ffffff' }} />
           </Box>
+          <Typography variant="h3" sx={{ fontWeight: 800, color: '#00B4D8', mb: 1, letterSpacing: '-0.5px' }}>
+            I Nostri Specialisti
+          </Typography>
+          <Typography variant="h6" sx={{ color: '#546E7A', fontWeight: 500, maxWidth: 600, mx: 'auto' }}>
+            Affidati ai migliori professionisti per la cura del tuo sorriso. Scegli il medico che preferisci.
+          </Typography>
+        </Box>
 
-          {error && (
-            <Alert 
-              severity="error" 
-              sx={{ 
-                mb: 4,
-                borderRadius: 2,
-                border: '1px solid #d32f2f20'
-              }}
-            >
-              {error}
-            </Alert>
-          )}
+        {error && <Alert severity="error" sx={{ mb: 4, borderRadius: 3 }}>{error}</Alert>}
 
-          {/* Opzione "Nessuna Preferenza" */}
-          {list && list.length > 0 && (
-            <Card 
-              sx={{ 
-                mb: 5,
-                borderRadius: 3,
-                background: 'linear-gradient(135deg, #00B4D8 0%, #0096C7 100%)',
-                color: '#ffffff',
-                boxShadow: '0 8px 24px rgba(0, 180, 216, 0.25)',
-                border: '2px solid #00B4D8',
-                overflow: 'visible',
-              }}
-            >
-              <CardContent sx={{ py: 4, px: 4 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, flexWrap: 'wrap' }}>
-                  <Box
-                    sx={{
-                      width: 80,
-                      height: 80,
-                      borderRadius: '50%',
-                      background: 'rgba(255, 255, 255, 0.2)',
-                      backdropFilter: 'blur(10px)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <HowToRegIcon sx={{ fontSize: 40 }} />
-                  </Box>
-                  <Box sx={{ flex: 1, minWidth: 250 }}>
-                    <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>
-                      Nessuna Preferenza
-                    </Typography>
-                    <Typography variant="body1" sx={{ opacity: 0.95 }}>
-                      Lascia che il nostro team assegni il medico disponibile più adatto
-                    </Typography>
-                  </Box>
-                  <Button
-                    size="large"
-                    variant="contained"
-                    onClick={handleNoPreference}
-                    startIcon={<CalendarMonthIcon />}
-                    sx={{
-                      py: 1.5,
-                      px: 4,
-                      borderRadius: 2,
-                      fontWeight: 700,
-                      background: '#ffffff',
-                      color: '#00B4D8',
-                      '&:hover': {
-                        background: '#F0F9FF',
-                        transform: 'translateY(-2px)',
-                        boxShadow: '0 6px 20px rgba(255, 255, 255, 0.3)',
-                      },
-                      transition: 'all 0.2s',
-                    }}
-                  >
-                    Continua
-                  </Button>
-                </Box>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Divider */}
-          {list && list.length > 0 && (
-            <Box sx={{ textAlign: 'center', mb: 5 }}>
-              <Typography 
-                variant="h5" 
-                sx={{ 
-                  fontWeight: 700,
-                  color: '#00B4D8',
-                }}
-              >
-                Oppure scegli un medico specifico
+        {/* CARD "NESSUNA PREFERENZA" */}
+        {list && list.length > 0 && (
+          <Paper 
+            elevation={0}
+            onClick={handleNoPreference}
+            sx={{ 
+              mb: 6, p: 4, borderRadius: 4, cursor: 'pointer',
+              background: 'linear-gradient(120deg, #FFFFFF 0%, #F0F9FF 100%)',
+              border: '2px dashed #00B4D8',
+              transition: 'all 0.3s ease',
+              display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 3,
+              '&:hover': { transform: 'translateY(-4px)', boxShadow: '0 12px 30px rgba(0, 180, 216, 0.15)', borderColor: '#0096C7' }
+            }}
+          >
+            <Avatar sx={{ bgcolor: '#E1F5FE', color: '#00B4D8', width: 70, height: 70 }}>
+              <HowToRegIcon sx={{ fontSize: 35 }} />
+            </Avatar>
+            <Box sx={{ flex: 1 }}>
+              <Typography variant="h5" sx={{ fontWeight: 800, color: '#0077B6' }}>Nessuna Preferenza?</Typography>
+              <Typography variant="body1" color="text.secondary">
+                Lascia che sia il nostro staff ad assegnarti il primo specialista disponibile per ridurre i tempi di attesa.
               </Typography>
             </Box>
-          )}
-
-          {/* Doctors Grid */}
-          {list.length === 0 && !loading ? (
-            <Alert 
-              severity="warning" 
-              sx={{ 
-                borderRadius: 2,
-                border: '2px solid #ff980020'
-              }}
+            <Button 
+              variant="contained" 
+              size="large"
+              endIcon={<CalendarMonthIcon />}
+              sx={{ borderRadius: 3, px: 4, py: 1.5, fontWeight: 700, bgcolor: '#00B4D8', boxShadow: '0 4px 14px rgba(0, 180, 216, 0.3)' }}
             >
-              <Typography variant="body1" sx={{ fontWeight: 600, mb: 0.5 }}>
-                Al momento non ci sono medici disponibili
-              </Typography>
-              <Typography variant="body2">
-                Riprova più tardi o contatta la reception per assistenza.
-              </Typography>
-            </Alert>
-          ) : (
-            <Grid container spacing={4}>
-              {list.map((doctor, index) => {
-                // Funzioni helper per estrarre i dati
-                const docName = getDoctorName(doctor);
-                const docSurname = getDoctorSurname(doctor);
-                const docEmail = getDoctorEmail(doctor);
-                const docSpecialization = getDoctorSpecialization(doctor);
+              Prenota al Primo Disponibile
+            </Button>
+          </Paper>
+        )}
 
-                return (
-                  <Grid item xs={12} sm={6} md={4} key={doctor.id}>
-                    <Card
-                      sx={{
-                        height: '100%',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        borderRadius: 3,
-                        border: '2px solid #E0F7FA',
-                        overflow: 'hidden',
-                        transition: 'all 0.3s',
-                        '&:hover': {
-                          borderColor: '#00B4D8',
-                          boxShadow: '0 12px 40px rgba(0, 180, 216, 0.2)',
-                          transform: 'translateY(-8px)',
-                          '& .doctor-image': {
-                            transform: 'scale(1.1)',
-                          },
-                        },
-                      }}
-                    >
-                      {/* Immagine Medico */}
-                      <Box
-                        sx={{
-                          position: 'relative',
-                          height: 280,
-                          overflow: 'hidden',
-                          background: 'linear-gradient(135deg, #00B4D8 0%, #0096C7 100%)',
-                        }}
-                      >
-                        <CardMedia
-                          className="doctor-image"
-                          component="img"
-                          image={doctorImages[index % doctorImages.length]}
-                          alt={`Dr. ${docName} ${docSurname}`}
-                          sx={{
-                            width: '100%',
-                            height: '100%',
-                            objectFit: 'cover',
-                            transition: 'transform 0.3s ease',
-                          }}
+        {/* GRIGLIA MEDICI */}
+        {list.length === 0 ? (
+          <Alert severity="warning" sx={{ borderRadius: 2 }}>Non ci sono medici disponibili al momento.</Alert>
+        ) : (
+          <Grid container spacing={4}>
+            {list.map((doctor, index) => {
+              const name = getDoctorName(doctor);
+              const surname = getDoctorSurname(doctor);
+              const email = getDoctorEmail(doctor);
+              const spec = getDoctorSpecialization(doctor);
+              const image = doctorImages[index % doctorImages.length];
+
+              return (
+                <Grid item xs={12} sm={6} md={4} key={doctor.id}>
+                  <Card 
+                    sx={{ 
+                      height: '100%', display: 'flex', flexDirection: 'column', 
+                      borderRadius: 4, border: '1px solid #E3F2FD',
+                      transition: 'all 0.3s', overflow: 'hidden', bgcolor: '#fff',
+                      '&:hover': { 
+                        transform: 'translateY(-8px)', 
+                        boxShadow: '0 15px 35px rgba(0,0,0,0.08)',
+                        borderColor: 'transparent'
+                      }
+                    }}
+                  >
+                    {/* Immagine con Overlay Sfumato */}
+                    <Box sx={{ position: 'relative', height: 260, overflow: 'hidden' }}>
+                      <CardMedia
+                        component="img"
+                        image={image}
+                        alt={`Dr. ${name}`}
+                        sx={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s' }}
+                        className="doctor-img"
+                      />
+                      <Box sx={{ 
+                        position: 'absolute', bottom: 0, left: 0, right: 0, 
+                        background: 'linear-gradient(to top, rgba(0,30,60,0.8) 0%, transparent 100%)', 
+                        p: 3, pt: 8 
+                      }}>
+                        <Typography variant="h6" sx={{ color: '#fff', fontWeight: 700, textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>
+                          Dr. {name} {surname}
+                        </Typography>
+                        <Chip 
+                          label={spec} 
+                          size="small" 
+                          icon={<VerifiedUserIcon sx={{fontSize: '14px !important'}} />}
+                          sx={{ 
+                            bgcolor: 'rgba(255,255,255,0.9)', 
+                            color: '#0077B6', 
+                            fontWeight: 700, 
+                            height: 24, 
+                            mt: 0.5 
+                          }} 
                         />
-                        <Box
-                          sx={{
-                            position: 'absolute',
-                            bottom: 0,
-                            left: 0,
-                            right: 0,
-                            background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%)',
-                            color: 'white',
-                            p: 2,
-                          }}
-                        >
-                          <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                            Dr. {docName} {docSurname}
-                          </Typography>
-                        </Box>
+                      </Box>
+                    </Box>
+
+                    {/* Contenuto */}
+                    <CardContent sx={{ p: 3, flexGrow: 1 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2, p: 1.5, bgcolor: '#F1F8E9', borderRadius: 2, color: '#33691E' }}>
+                        <VerifiedUserIcon fontSize="small" />
+                        <Typography variant="caption" fontWeight={700}>SPECIALISTA CERTIFICATO</Typography>
                       </Box>
 
-                      <CardContent sx={{ flexGrow: 1, p: 3 }}>
-                        {/* Specializzazione */}
-                        <Box 
-                          sx={{ 
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 1.5,
-                            mb: 2,
-                            px: 2,
-                            py: 1.5,
-                            borderRadius: 2,
-                            background: '#F0F9FF',
-                            border: '1px solid #E0F7FA',
-                          }}
-                        >
-                          <MedicalServicesIcon sx={{ color: '#00B4D8', fontSize: 24 }} />
-                          <Typography 
-                            variant="body1" 
-                            sx={{ 
-                              fontWeight: 600,
-                              color: '#00B4D8',
-                            }}
-                          >
-                            {docSpecialization}
+                      <Tooltip title={email} arrow placement="top">
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, color: '#546E7A' }}>
+                          <EmailIcon fontSize="small" sx={{ color: '#90A4AE' }} />
+                          <Typography variant="body2" noWrap sx={{ fontWeight: 500 }}>
+                            {email}
                           </Typography>
                         </Box>
+                      </Tooltip>
+                    </CardContent>
 
-                        {/* Email Medico con Tooltip e Safe Access */}
-                        <Tooltip title={docEmail} placement="top" arrow>
-                          <Box 
-                            sx={{ 
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 1.5,
-                              px: 2,
-                              py: 1.5,
-                              borderRadius: 2,
-                              background: '#F0F9FF',
-                              border: '1px solid #E0F7FA',
-                              cursor: 'default'
-                            }}
-                          >
-                            <EmailIcon sx={{ color: '#00B4D8', fontSize: 20 }} />
-                            <Typography 
-                              variant="body2"
-                              sx={{
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                whiteSpace: 'nowrap',
-                                color: '#666',
-                                width: '100%' 
-                              }}
-                            >
-                              {docEmail}
-                            </Typography>
-                          </Box>
-                        </Tooltip>
-                      </CardContent>
-
-                      <CardActions sx={{ p: 3, pt: 0 }}>
-                        <Button
-                          size="large"
-                          variant="contained"
-                          fullWidth
-                          onClick={() => handleSelectDoctor(doctor)}
-                          startIcon={<CalendarMonthIcon />}
-                          sx={{
-                            py: 1.5,
-                            borderRadius: 2,
-                            fontWeight: 700,
-                            background: 'linear-gradient(135deg, #00B4D8 0%, #0096C7 100%)',
-                            '&:hover': {
-                              background: 'linear-gradient(135deg, #0096C7 0%, #0077A8 100%)',
-                              transform: 'translateY(-2px)',
-                              boxShadow: '0 6px 20px rgba(0, 180, 216, 0.4)',
-                            },
-                            transition: 'all 0.2s',
-                          }}
-                        >
-                          Prenota Visita
-                        </Button>
-                      </CardActions>
-                    </Card>
-                  </Grid>
-                );
-              })}
-            </Grid>
-          )}
-        </Paper>
+                    {/* Azione */}
+                    <CardActions sx={{ p: 3, pt: 0 }}>
+                      <Button 
+                        fullWidth 
+                        variant="contained" 
+                        size="large"
+                        onClick={() => handleSelectDoctor(doctor)}
+                        sx={{ 
+                          borderRadius: 3, fontWeight: 700, py: 1.5,
+                          background: 'linear-gradient(135deg, #00B4D8 0%, #0096C7 100%)',
+                          boxShadow: '0 4px 12px rgba(0, 180, 216, 0.2)',
+                          '&:hover': { background: 'linear-gradient(135deg, #0096C7 0%, #0077A8 100%)' }
+                        }}
+                      >
+                        Prenota Visita
+                      </Button>
+                    </CardActions>
+                  </Card>
+                </Grid>
+              );
+            })}
+          </Grid>
+        )}
       </Container>
     </Box>
   );

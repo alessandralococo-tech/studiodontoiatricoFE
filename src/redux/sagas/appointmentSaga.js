@@ -1,106 +1,79 @@
 import { call, put, takeLatest } from 'redux-saga/effects';
 import {
-  fetchAvailableSlotsRequest,
-  fetchAvailableSlotsSuccess,
-  fetchAvailableSlotsFailure,
-  createAppointmentRequest,
-  createAppointmentSuccess,
-  createAppointmentFailure,
-  fetchMyAppointmentsRequest,
-  fetchMyAppointmentsSuccess,
-  fetchMyAppointmentsFailure,
-  fetchDoctorAppointmentsRequest,
-  fetchDoctorAppointmentsSuccess,
-  fetchDoctorAppointmentsFailure,
-  updateAppointmentStatusRequest,
-  updateAppointmentStatusSuccess,
-  updateAppointmentStatusFailure,
-  cancelAppointmentRequest,
-  cancelAppointmentSuccess,
-  cancelAppointmentFailure,
+  fetchAvailableSlotsRequest, fetchAvailableSlotsSuccess, fetchAvailableSlotsFailure,
+  createAppointmentRequest, createAppointmentSuccess, createAppointmentFailure,
+  fetchMyAppointmentsRequest, fetchMyAppointmentsSuccess, fetchMyAppointmentsFailure,
+  fetchDoctorAppointmentsRequest, fetchDoctorAppointmentsSuccess, fetchDoctorAppointmentsFailure,
+  updateAppointmentStatusRequest, updateAppointmentStatusSuccess, updateAppointmentStatusFailure,
+  updateAppointmentRequest, updateAppointmentSuccess, updateAppointmentFailure,
+  cancelAppointmentRequest, cancelAppointmentSuccess, cancelAppointmentFailure,
 } from '../slices/appointmentSlice';
 import appointmentApi from '../../api/appointmentApi';
 
-// FETCH AVAILABLE SLOTS SAGA
 function* fetchAvailableSlotsSaga(action) {
   try {
     const { doctorId, date, durationMinutes } = action.payload;
     const slots = yield call(appointmentApi.getAvailableSlots, doctorId, date, durationMinutes);
     yield put(fetchAvailableSlotsSuccess(slots));
-  } catch (error) {
-    const errorMessage = error.response?.data?.message || error.message || 'Errore nel caricamento degli slot';
-    yield put(fetchAvailableSlotsFailure(errorMessage));
-  }
+  } catch (error) { yield put(fetchAvailableSlotsFailure(error.message)); }
 }
 
-// CREATE APPOINTMENT SAGA
 function* createAppointmentSaga(action) {
   try {
     const appointment = yield call(appointmentApi.createAppointment, action.payload);
     yield put(createAppointmentSuccess(appointment));
-  } catch (error) {
-    const errorMessage = error.response?.data?.message || error.message || 'Errore nella creazione appuntamento';
-    yield put(createAppointmentFailure(errorMessage));
-  }
+  } catch (error) { yield put(createAppointmentFailure(error.message)); }
 }
 
-// FETCH MY APPOINTMENTS SAGA (Paziente)
 function* fetchMyAppointmentsSaga() {
   try {
     const appointments = yield call(appointmentApi.getMyAppointments);
     yield put(fetchMyAppointmentsSuccess(appointments));
-  } catch (error) {
-    const errorMessage = error.response?.data?.message || error.message || 'Errore nel caricamento appuntamenti';
-    yield put(fetchMyAppointmentsFailure(errorMessage));
-  }
+  } catch (error) { yield put(fetchMyAppointmentsFailure(error.message)); }
 }
 
-// FETCH DOCTOR APPOINTMENTS SAGA (Medico)
+// DOCTOR FETCH
 function* fetchDoctorAppointmentsSaga(action) {
   try {
     const date = action.payload?.date || null;
     const appointments = yield call(appointmentApi.getDoctorAppointments, date);
     yield put(fetchDoctorAppointmentsSuccess(appointments));
-  } catch (error) {
-    const errorMessage = error.response?.data?.message || error.message || 'Errore nel caricamento appuntamenti medico';
-    yield put(fetchDoctorAppointmentsFailure(errorMessage));
-  }
+  } catch (error) { yield put(fetchDoctorAppointmentsFailure(error.message)); }
 }
 
-// UPDATE APPOINTMENT STATUS SAGA (Medico)
+// UPDATE STATUS
 function* updateAppointmentStatusSaga(action) {
   try {
     const { id, status } = action.payload;
-    // Chiama l'API per aggiornare lo stato
-    const updatedAppointment = yield call(appointmentApi.updateAppointmentStatus, id, status);
-    yield put(updateAppointmentStatusSuccess(updatedAppointment));
-  } catch (error) {
-    const errorMessage = error.response?.data?.message || error.message || 'Errore nell\'aggiornamento dello stato';
-    yield put(updateAppointmentStatusFailure(errorMessage));
-  }
+    const updated = yield call(appointmentApi.updateAppointmentStatus, id, status);
+    yield put(updateAppointmentStatusSuccess(updated));
+  } catch (error) { yield put(updateAppointmentStatusFailure(error.message)); }
 }
 
-// CANCEL APPOINTMENT SAGA
+// UPDATE FULL (RESCHEDULE) - NUOVO
+function* updateAppointmentSaga(action) {
+  try {
+    const { id, data } = action.payload;
+    const updated = yield call(appointmentApi.updateAppointment, id, data);
+    yield put(updateAppointmentSuccess(updated));
+  } catch (error) { yield put(updateAppointmentFailure(error.message)); }
+}
+
+// CANCEL
 function* cancelAppointmentSaga(action) {
   try {
     const { id } = action.payload;
     yield call(appointmentApi.cancelAppointment, id);
     yield put(cancelAppointmentSuccess(id));
-  } catch (error) {
-    const errorMessage = error.response?.data?.message || error.message || 'Errore nella cancellazione';
-    yield put(cancelAppointmentFailure(errorMessage));
-  }
+  } catch (error) { yield put(cancelAppointmentFailure(error.message)); }
 }
 
-// WATCHER SAGA
 export default function* appointmentSaga() {
   yield takeLatest(fetchAvailableSlotsRequest.type, fetchAvailableSlotsSaga);
   yield takeLatest(createAppointmentRequest.type, createAppointmentSaga);
   yield takeLatest(fetchMyAppointmentsRequest.type, fetchMyAppointmentsSaga);
-  
-  // WATCHER PER IL MEDICO
   yield takeLatest(fetchDoctorAppointmentsRequest.type, fetchDoctorAppointmentsSaga);
   yield takeLatest(updateAppointmentStatusRequest.type, updateAppointmentStatusSaga);
-  
+  yield takeLatest(updateAppointmentRequest.type, updateAppointmentSaga);
   yield takeLatest(cancelAppointmentRequest.type, cancelAppointmentSaga);
 }

@@ -29,7 +29,7 @@ const ToothIcon = () => (
 const Login = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { loading, error, isAuthenticated, user } = useSelector((state) => state.auth);
+  const { loading, error, isAuthenticated } = useSelector((state) => state.auth);
 
   const [formData, setFormData] = useState({
     email: '',
@@ -40,13 +40,9 @@ const Login = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      if (user?.role === 'ROLE_ADMIN') {
-        navigate('/doctor-dashboard');
-      } else {
-        navigate('/doctors');
-      }
+      navigate('/');
     }
-  }, [isAuthenticated, user, navigate]);
+  }, [isAuthenticated, navigate]);
 
   useEffect(() => {
     return () => {
@@ -70,20 +66,27 @@ const Login = () => {
     <Box
       sx={{
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #F0F9FF 0%, #E0F7FA 100%)',
+        background: 'linear-gradient(135deg, #E0F7FA 0%, #B2EBF2 50%, #80DEEA 100%)',
         display: 'flex',
         alignItems: 'center',
+        justifyContent: 'center',
         py: 6,
+        px: 2
       }}
     >
       <Container maxWidth="sm">
         <Paper
           elevation={0}
           sx={{
-            p: { xs: 3, sm: 5 },
+            p: { xs: 4, sm: 5, md: 6 },
             borderRadius: 4,
-            boxShadow: '0 10px 40px rgba(0, 180, 216, 0.15)',
-            background: '#ffffff',
+            boxShadow: '0 20px 60px rgba(0, 119, 182, 0.15)',
+            background: 'rgba(255, 255, 255, 0.98)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(0, 180, 216, 0.1)',
+            width: '100%',
+            maxWidth: '500px',
+            mx: 'auto'
           }}
         >
           {/* Header con Logo */}
@@ -92,31 +95,40 @@ const Login = () => {
               sx={{
                 width: 80,
                 height: 80,
-                margin: '0 auto 24px',
-                background: 'linear-gradient(135deg, #00B4D8 0%, #0096C7 100%)',
-                borderRadius: '50%',
+                mx: 'auto',
+                mb: 2.5,
+                background: 'linear-gradient(135deg, #00B4D8 0%, #0077B6 100%)',
+                borderRadius: '20px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 boxShadow: '0 8px 24px rgba(0, 180, 216, 0.3)',
-                color: '#ffffff'
+                color: '#ffffff',
+                transform: 'rotate(-5deg)',
+                transition: 'transform 0.3s ease',
+                '&:hover': {
+                  transform: 'rotate(0deg) scale(1.05)'
+                }
               }}
             >
-              <ToothIcon />
+              <Box sx={{ transform: 'rotate(5deg)' }}>
+                <ToothIcon />
+              </Box>
             </Box>
             <Typography
               variant="h4"
               component="h1"
               gutterBottom
               sx={{
-                fontWeight: 700,
-                color: '#00B4D8',
+                fontWeight: 800,
+                color: '#0077B6',
+                letterSpacing: '-0.5px',
                 mb: 1,
               }}
             >
               Bentornato
             </Typography>
-            <Typography variant="body1" sx={{ color: '#48CAE4', fontWeight: 600 }}>
+            <Typography variant="body1" sx={{ color: '#546E7A', fontSize: '0.95rem' }}>
               Accedi al tuo account per gestire i tuoi appuntamenti
             </Typography>
           </Box>
@@ -125,9 +137,9 @@ const Login = () => {
             <Alert
               severity="error"
               sx={{
-                mb: 3,
+                mb: 4,
                 borderRadius: 2,
-                border: '1px solid #d32f2f20',
+                border: '1px solid rgba(211, 47, 47, 0.2)',
               }}
             >
               {error}
@@ -135,7 +147,7 @@ const Login = () => {
           )}
 
           {/* Form */}
-          <Box component="form" onSubmit={handleSubmit} autoComplete="off">
+          <Box component="form" onSubmit={handleSubmit} autoComplete="new-password">
             <TextField
               fullWidth
               label="Email"
@@ -157,11 +169,12 @@ const Login = () => {
               sx={{
                 mb: 2,
                 '& .MuiOutlinedInput-root': {
+                  borderRadius: 2,
                   '&:hover fieldset': {
                     borderColor: '#00B4D8',
                   },
                   '&.Mui-focused fieldset': {
-                    borderColor: '#00B4D8',
+                    borderColor: '#0077B6',
                   },
                 },
               }}
@@ -190,6 +203,7 @@ const Login = () => {
                       onClick={() => setShowPassword(!showPassword)}
                       edge="end"
                       disabled={loading}
+                      sx={{ color: '#00B4D8' }}
                     >
                       {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
                     </IconButton>
@@ -199,11 +213,12 @@ const Login = () => {
               sx={{
                 mb: 3,
                 '& .MuiOutlinedInput-root': {
+                  borderRadius: 2,
                   '&:hover fieldset': {
                     borderColor: '#00B4D8',
                   },
                   '&.Mui-focused fieldset': {
-                    borderColor: '#00B4D8',
+                    borderColor: '#0077B6',
                   },
                 },
               }}
@@ -219,16 +234,18 @@ const Login = () => {
                 size="large"
                 sx={{
                   py: 1.8,
-                  fontSize: '1.1rem',
+                  fontSize: '1.05rem',
                   fontWeight: 700,
-                  background: 'linear-gradient(135deg, #00B4D8 0%, #0096C7 100%)',
-                  boxShadow: '0 4px 12px rgba(0, 180, 216, 0.3)',
+                  borderRadius: 2.5,
+                  background: 'linear-gradient(135deg, #00B4D8 0%, #0077B6 100%)',
+                  boxShadow: '0 8px 24px rgba(0, 180, 216, 0.35)',
+                  textTransform: 'none',
+                  transition: 'all 0.3s ease',
                   '&:hover': {
-                    background: 'linear-gradient(135deg, #0096C7 0%, #0077A8 100%)',
-                    boxShadow: '0 6px 20px rgba(0, 180, 216, 0.4)',
-                    transform: 'translateY(-2px)',
-                  },
-                  transition: 'all 0.2s',
+                    background: 'linear-gradient(135deg, #0096B8 0%, #005F96 100%)',
+                    boxShadow: '0 12px 32px rgba(0, 180, 216, 0.45)',
+                    transform: 'translateY(-2px)'
+                  }
                 }}
               >
                 Accedi
@@ -237,9 +254,9 @@ const Login = () => {
 
             <Box
               sx={{
-                mt: 3,
-                pt: 3,
-                borderTop: '1px solid #E0F7FA',
+                mt: 4,
+                pt: 3.5,
+                borderTop: '1px solid rgba(0, 0, 0, 0.08)',
                 textAlign: 'center',
               }}
             >
@@ -254,12 +271,14 @@ const Login = () => {
                 sx={{
                   py: 1.5,
                   borderWidth: 2,
+                  borderRadius: 2,
                   borderColor: '#00B4D8',
                   color: '#00B4D8',
                   fontWeight: 600,
+                  textTransform: 'none',
                   '&:hover': {
                     borderWidth: 2,
-                    borderColor: '#0096C7',
+                    borderColor: '#0077B6',
                     background: 'rgba(0, 180, 216, 0.05)',
                   },
                 }}
@@ -277,10 +296,13 @@ const Login = () => {
             <Typography
               component="span"
               sx={{
-                color: '#00B4D8',
+                color: '#0077B6',
                 fontWeight: 600,
                 cursor: 'pointer',
-                '&:hover': { textDecoration: 'underline' },
+                '&:hover': { 
+                  color: '#00B4D8',
+                  textDecoration: 'underline' 
+                },
               }}
             >
               Contattaci
