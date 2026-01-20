@@ -1,14 +1,8 @@
 import { call, put, takeLatest, select } from 'redux-saga/effects';
 import {
-  loginRequest,
-  loginSuccess,
-  loginFailure,
-  registerRequest,
-  registerSuccess,
-  registerFailure,
-  fetchProfileRequest,
-  fetchProfileSuccess,
-  fetchProfileFailure
+  loginRequest, loginSuccess, loginFailure,
+  registerRequest, registerSuccess, registerFailure,
+  fetchProfileRequest, fetchProfileSuccess, fetchProfileFailure
 } from '../slices/authSlice';
 import authApi from '../../api/authApi';
 
@@ -35,37 +29,37 @@ function* loginSaga(action) {
     const token = response.token || response.accessToken;
     const decodedToken = parseJwt(token);
     
-    // Costruiamo un oggetto utente base dal token
     const basicUserData = {
-      email: response.email || decodedToken?.sub || email,
-      role: response.role || decodedToken?.role || 'ROLE_PATIENT',
+      email: response.email || decodedToken?.sub,
+      role: response.role || decodedToken?.role || 'ROLE_USER', 
+      id: response.id || decodedToken?.id
     };
 
     localStorage.setItem('token', token);
-    // Salviamo temporaneamente i dati base
     localStorage.setItem('user', JSON.stringify(basicUserData));
 
     yield put(loginSuccess({ ...basicUserData, token }));
-    
-    // Prende i dati completi dopo il login
-    yield put(fetchProfileRequest());
+    yield put(fetchProfileRequest()); 
 
   } catch (error) {
-    yield put(loginFailure(error.message || 'Errore Login'));
+    yield put(loginFailure(error.response?.data?.message || 'Login fallito'));
   }
 }
 
 function* registerSaga(action) {
   try {
-    const { firstName, lastName, email, password } = action.payload;
-    const response = yield call(authApi.register, firstName, lastName, email, password);
+    const { firstName, lastName, email, password, phone, birth } = action.payload;
+    const response = yield call(authApi.register, firstName, lastName, email, password, phone, birth);
+    
     const token = response.token || response.accessToken;
-
+    
     const userData = {
       email: email,
-      role: 'ROLE_PATIENT',
       firstName: firstName,
       lastName: lastName,
+      role: 'ROLE_USER',
+      phone: phone,
+      birth: birth
     };
 
     localStorage.setItem('token', token);
@@ -79,35 +73,38 @@ function* registerSaga(action) {
   }
 }
 
-// FETCH PROFILE
+// FETCH PROFILE (CRUCIALE PER PRECOMPILAZIONE)
 function* fetchProfileSaga() {
   try {
-    // Recuperiamo lo stato attuale per sapere il ruolo
     const state = yield select();
     const role = state.auth.user?.role;
 
     let profileData = null;
 
     if (role === 'ROLE_ADMIN') {
-      // Se è medico
       const response = yield call(authApi.getDoctorProfile);
       profileData = response; 
     } else {
-      // Se è paziente
       const response = yield call(authApi.getPatientProfile);
       profileData = response;
     }
 
-    // NORMALIZZAZIONE DATI
+    console.log("Dati Profilo Ricevuti dal Backend:", profileData);
+
+    // NORMALIZZAZIONE DATI ROBUSTA
     const normalizedData = {
       id: profileData.id,
       email: profileData.email,
-      firstName: profileData.name,
-      lastName: profileData.surname,
-      phone: profileData.phone || '',
-      specialization: profileData.specialization || '', // Solo per medici
-      birth: profileData.birth || ''
+      // Gestione varianti nomi
+      firstName: profileData.firstName || profileData.name || profileData.first_name,
+      lastName: profileData.lastName || profileData.surname || profileData.last_name,
+      // Gestione varianti telefono e data
+      phone: profileData.phone || profileData.phoneNumber || profileData.mobile || '',
+      birth: profileData.birth || profileData.birthDate || profileData.dateOfBirth || '',
+      specialization: profileData.specialization || ''
     };
+
+    console.log("Dati Profilo Normalizzati:", normalizedData);
 
     yield put(fetchProfileSuccess(normalizedData));
 

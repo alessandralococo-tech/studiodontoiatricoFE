@@ -8,7 +8,6 @@ import { PayPalScriptProvider } from "@paypal/react-paypal-js";
 import Navbar from './components/Layout/Navbar';
 import Footer from './components/Layout/Footer';
 import PrivateRoute from './components/PrivateRoute';
-// NUOVO: Import ErrorBoundary per gestire i crash della UI
 import ErrorBoundary from './components/ErrorBoundary';
 
 // Pages
@@ -21,6 +20,10 @@ import MyAppointments from './pages/Patient/MyAppointments';
 import PaymentSuccess from './pages/Patient/PaymentSuccess';
 import DoctorDashboard from './pages/Doctor/DoctorDashboard';
 import Profile from './pages/Profile';
+import PrivacyPolicy from './pages/Legal/PrivacyPolicy';
+import TermsOfService from './pages/Legal/TermsOfService';
+import CookiePolicy from './pages/Legal/CookiePolicy';
+import Contact from './pages/Contact';
 
 const theme = createTheme({
   palette: {
@@ -48,7 +51,6 @@ function App() {
   return (
     <PayPalScriptProvider options={paypalOptions}>
       <Provider store={store}>
-        {/* AVVOLGIAMO L'APP CON L'ERROR BOUNDARY */}
         <ErrorBoundary>
           <ThemeProvider theme={theme}>
             <CssBaseline />
@@ -57,13 +59,22 @@ function App() {
                 <Navbar />
                 <main>
                   <Routes>
+                    {/* Pagine Pubbliche */}
                     <Route path="/" element={<Home />} />
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
+                    <Route path="/contact" element={<Contact />} />
                     
+                    {/* Pagine Legali */}
+                    <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                    <Route path="/terms-of-service" element={<TermsOfService />} />
+                    <Route path="/cookie-policy" element={<CookiePolicy />} />
+                    
+                    {/* Pagine Private */}
                     <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
                     <Route path="/doctors" element={<PrivateRoute><DoctorsList /></PrivateRoute>} />
                     
+                    {/* Pagine Pazienti */}
                     <Route 
                       path="/book-appointment" 
                       element={<PrivateRoute requiredRole="ROLE_USER"><BookAppointment /></PrivateRoute>} 
@@ -77,11 +88,13 @@ function App() {
                       element={<PrivateRoute requiredRole="ROLE_USER"><PaymentSuccess /></PrivateRoute>} 
                     />
 
+                    {/* Pagine Dottori */}
                     <Route 
                       path="/doctor-dashboard" 
                       element={<PrivateRoute requiredRole="ROLE_ADMIN"><DoctorDashboard /></PrivateRoute>} 
                     />
 
+                    {/* Redirect per route non trovate */}
                     <Route path="*" element={<Navigate to="/" replace />} />
                   </Routes>
                 </main>

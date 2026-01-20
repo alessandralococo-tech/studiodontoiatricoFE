@@ -2,10 +2,9 @@ import axiosInstance from '../utils/axiosConfig';
 
 const paymentApi = {
   // POST /payments/create
-  initiatePayPalPayment: (amount, appointmentId) => {
+  initiatePayPalPayment: (appointmentId) => {
     return axiosInstance.post('/payments/create', null, {
       params: {
-        amount: amount,
         appointmentId: appointmentId
       }
     });

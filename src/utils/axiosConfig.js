@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-// Legge l'URL dal file .env (Vite) o usa localhost come fallback
+// Legge l'URL dal file .env
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
 const axiosInstance = axios.create({
@@ -21,7 +21,7 @@ axiosInstance.interceptors.request.use(
       // Rimuove eventuali virgolette extra
       token = token.replace(/"/g, '');
       
-      // Rimuove prefisso Bearer se già presente (per evitare doppi Bearer)
+      // Rimuove prefisso Bearer se già presente
       if (token.startsWith('Bearer ')) {
          token = token.substring(7);
       }
@@ -35,7 +35,7 @@ axiosInstance.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Interceptor Response: Gestione Errori Globali (es. Token Scaduto)
+// Interceptor Response: Gestione Errori Globali
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {

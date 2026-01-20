@@ -6,6 +6,7 @@ import FacebookIcon from '@mui/icons-material/Facebook';
 import InstagramIcon from '@mui/icons-material/Instagram';
 import TwitterIcon from '@mui/icons-material/Twitter';
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
+import { Link as RouterLink } from 'react-router-dom';
 
 const ToothIcon = () => (
   <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
@@ -122,7 +123,8 @@ const Footer = () => {
             </Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
               <Link
-                href="/"
+                component={RouterLink}
+                to="/"
                 sx={{
                   color: '#ffffff',
                   textDecoration: 'none',
@@ -137,7 +139,8 @@ const Footer = () => {
                 Home
               </Link>
               <Link
-                href="/doctors"
+                component={RouterLink}
+                to="/doctors"
                 sx={{
                   color: '#ffffff',
                   textDecoration: 'none',
@@ -152,7 +155,8 @@ const Footer = () => {
                 I Nostri Medici
               </Link>
               <Link
-                href="/my-appointments"
+                component={RouterLink}
+                to="/my-appointments"
                 sx={{
                   color: '#ffffff',
                   textDecoration: 'none',
@@ -165,6 +169,22 @@ const Footer = () => {
                 }}
               >
                 Appuntamenti
+              </Link>
+              <Link
+                component={RouterLink}
+                to="/contact"
+                sx={{
+                  color: '#ffffff',
+                  textDecoration: 'none',
+                  opacity: 0.9,
+                  transition: 'all 0.2s',
+                  '&:hover': {
+                    opacity: 1,
+                    transform: 'translateX(5px)',
+                  },
+                }}
+              >
+                Contattaci
               </Link>
             </Box>
           </Grid>
@@ -256,9 +276,10 @@ const Footer = () => {
           <Typography variant="body2" sx={{ opacity: 0.9 }}>
             © {currentYear} SmileCare Studio Dentistico. Tutti i diritti riservati.
           </Typography>
-          <Box sx={{ display: 'flex', gap: 3 }}>
+          <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap', justifyContent: 'center' }}>
             <Link
-              href="#"
+              component={RouterLink}
+              to="/privacy-policy"
               sx={{
                 color: '#ffffff',
                 textDecoration: 'none',
@@ -270,7 +291,8 @@ const Footer = () => {
               Privacy Policy
             </Link>
             <Link
-              href="#"
+              component={RouterLink}
+              to="/terms-of-service"
               sx={{
                 color: '#ffffff',
                 textDecoration: 'none',
@@ -282,7 +304,8 @@ const Footer = () => {
               Termini di Servizio
             </Link>
             <Link
-              href="#"
+              component={RouterLink}
+              to="/cookie-policy"
               sx={{
                 color: '#ffffff',
                 textDecoration: 'none',

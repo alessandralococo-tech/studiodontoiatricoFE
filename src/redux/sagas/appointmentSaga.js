@@ -50,7 +50,7 @@ function* updateAppointmentStatusSaga(action) {
   } catch (error) { yield put(updateAppointmentStatusFailure(error.message)); }
 }
 
-// UPDATE FULL (RESCHEDULE) - NUOVO
+// UPDATE FULL
 function* updateAppointmentSaga(action) {
   try {
     const { id, data } = action.payload;

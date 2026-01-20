@@ -29,6 +29,7 @@ import PersonIcon from '@mui/icons-material/Person';
 import EditIcon from '@mui/icons-material/Edit';
 import EventIcon from '@mui/icons-material/Event';
 import CancelIcon from '@mui/icons-material/Cancel';
+import CakeIcon from '@mui/icons-material/Cake';
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
@@ -143,10 +144,18 @@ const DoctorDashboard = () => {
 
   const saveEdit = () => {
     if (selectedAppt && editForm.date && editForm.timeSlot) {
+      const doctorId = selectedAppt.doctorId || selectedAppt.doctor?.id || user?.id;
+      const patientEmail = selectedAppt.patientEmail || selectedAppt.patient?.email;
+
+      if (!doctorId || !patientEmail) {
+        alert("Errore: Dati mancanti (Doctor ID o Email Paziente). Impossibile modificare.");
+        return;
+      }
+
       const updatePayload = {
         id: selectedAppt.id,
-        doctorId: selectedAppt.doctorId || user?.id, 
-        patientId: selectedAppt.patientId, 
+        doctorId: doctorId, 
+        patientEmail: patientEmail,
         appointmentDate: editForm.date,
         timeSlot: editForm.timeSlot,
         durationMinutes: selectedAppt.durationMinutes || 15,
@@ -154,6 +163,7 @@ const DoctorDashboard = () => {
         reason: selectedAppt.reason,
         notes: selectedAppt.notes
       };
+      
       dispatch(updateAppointmentRequest({ id: selectedAppt.id, data: updatePayload }));
       handleCloseDetails();
     }
@@ -246,7 +256,7 @@ const DoctorDashboard = () => {
                           >
                             <CardContent sx={{ p: '8px !important', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                               <Typography variant="subtitle2" sx={{ fontWeight: 700, fontSize: '0.8rem', color: '#1a365d', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                {appointment.patientFirstName} {appointment.patientLastName}
+                                {appointment.patient?.firstName || appointment.patientFirstName || "Paziente"} {appointment.patient?.lastName || appointment.patientLastName || ""}
                               </Typography>
                               <Typography variant="caption" sx={{ fontSize: '0.7rem', color: '#455a64', mt: 0.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                 {appointment.reason || 'Visita'}
@@ -274,7 +284,9 @@ const DoctorDashboard = () => {
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.2)', width: 50, height: 50 }}><PersonIcon /></Avatar>
                 <Box>
-                  <Typography variant="h5" fontWeight={700}>{selectedAppt.patientFirstName} {selectedAppt.patientLastName}</Typography>
+                  <Typography variant="h5" fontWeight={700}>
+                    {selectedAppt.patient?.firstName || selectedAppt.patientFirstName || "Paziente"} {selectedAppt.patient?.lastName || selectedAppt.patientLastName || ""}
+                  </Typography>
                   <Chip label={isEditing ? "Modifica in corso..." : selectedAppt.status} size="small" sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: '#fff', fontWeight: 600, mt: 0.5 }} />
                 </Box>
               </Box>
@@ -285,12 +297,13 @@ const DoctorDashboard = () => {
                 <Grid container spacing={3}>
                   <Grid item xs={12}>
                     <Stack spacing={2.5}>
-                      <Box sx={{ display: 'flex', gap: 2 }}><EmailIcon color="primary" /><Typography>{selectedAppt.patientEmail || 'Email non disponibile'}</Typography></Box>
-                      <Box sx={{ display: 'flex', gap: 2 }}><PhoneIcon color="primary" /><Typography>{selectedAppt.patientPhone || 'Telefono non disponibile'}</Typography></Box>
+                      <Box sx={{ display: 'flex', gap: 2 }}><EmailIcon color="primary" /><Typography>{selectedAppt.patient?.email || selectedAppt.patientEmail || 'Email non disponibile'}</Typography></Box>
+                      <Box sx={{ display: 'flex', gap: 2 }}><PhoneIcon color="primary" /><Typography>{selectedAppt.patient?.phone || selectedAppt.patient?.phoneNumber || selectedAppt.patientPhone || 'Telefono non disponibile'}</Typography></Box>
+                      <Box sx={{ display: 'flex', gap: 2 }}><CakeIcon color="primary" /><Typography>{selectedAppt.patient?.birth || 'Data di nascita non disponibile'}</Typography></Box>
                       <Box sx={{ display: 'flex', gap: 2 }}><EventIcon color="primary" /><Typography fontWeight={700}>{new Date(selectedAppt.appointmentDate).toLocaleDateString()} - {formatTimeSlot(selectedAppt.timeSlot)}</Typography></Box>
                       <Divider />
-                      <Box sx={{ display: 'flex', gap: 2 }}><BookmarkIcon color="action" /><Typography>{selectedAppt.reason || 'Nessun motivo specificato'}</Typography></Box>
-                      <Box sx={{ display: 'flex', gap: 2 }}><NotesIcon color="action" /><Typography sx={{ fontStyle: 'italic', color: '#666' }}>{selectedAppt.notes || 'Nessuna nota aggiuntiva'}</Typography></Box>
+                      <Box sx={{ display: 'flex', gap: 2 }}><BookmarkIcon color="action" /><Typography><strong>Motivo:</strong> {selectedAppt.reason || 'Nessun motivo specificato'}</Typography></Box>
+                      <Box sx={{ display: 'flex', gap: 2 }}><NotesIcon color="action" /><Typography sx={{ fontStyle: 'italic', color: '#666' }}><strong>Note:</strong> {selectedAppt.notes || 'Nessuna nota aggiuntiva'}</Typography></Box>
                     </Stack>
                   </Grid>
                 </Grid>

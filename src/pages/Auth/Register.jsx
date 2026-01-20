@@ -12,6 +12,7 @@ import PersonIcon from '@mui/icons-material/Person';
 import EmailIcon from '@mui/icons-material/Email';
 import LockIcon from '@mui/icons-material/Lock';
 import PhoneIcon from '@mui/icons-material/Phone';
+import CakeIcon from '@mui/icons-material/Cake';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 
@@ -27,7 +28,7 @@ const Register = () => {
   const { loading, error, isAuthenticated } = useSelector((state) => state.auth);
 
   const [formData, setFormData] = useState({
-    firstName: '', lastName: '', email: '', phone: '',
+    firstName: '', lastName: '', email: '', phone: '', birth: '',
     password: '', confirmPassword: '',
   });
 
@@ -53,8 +54,24 @@ const Register = () => {
       lastName: formData.lastName,
       email: formData.email,
       phone: formData.phone,
+      birth: formData.birth,
       password: formData.password,
     }));
+  };
+
+  // Messaggi di errore
+  const getFriendlyErrorMessage = (rawError) => {
+    if (!rawError) return null;
+    const errString = String(rawError).toLowerCase();
+
+    if (errString.includes('409') || errString.includes('exist') || errString.includes('già registrata')) {
+      return "Esiste già un account con questa email. Prova ad accedere.";
+    }
+    if (errString.includes('400')) {
+      return "I dati inseriti non sono validi. Controlla di aver compilato tutto.";
+    }
+    
+    return "Errore durante la registrazione. Riprova.";
   };
 
   return (
@@ -83,338 +100,67 @@ const Register = () => {
           }}
         >
           
-          {/* Header */}
           <Box sx={{ textAlign: 'center', mb: 4 }}>
             <Box sx={{ 
-              width: 80, 
-              height: 80, 
-              mx: 'auto', 
-              mb: 2.5, 
+              width: 80, height: 80, mx: 'auto', mb: 2.5, 
               background: 'linear-gradient(135deg, #00B4D8 0%, #0077B6 100%)',
-              borderRadius: '20px', 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center', 
-              color: '#fff',
-              boxShadow: '0 8px 24px rgba(0, 180, 216, 0.3)',
-              transform: 'rotate(-5deg)',
-              transition: 'transform 0.3s ease',
-              '&:hover': {
-                transform: 'rotate(0deg) scale(1.05)'
-              }
+              borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', 
+              color: '#fff', boxShadow: '0 8px 24px rgba(0, 180, 216, 0.3)',
+              transform: 'rotate(-5deg)', transition: 'transform 0.3s ease',
+              '&:hover': { transform: 'rotate(0deg) scale(1.05)' }
             }}>
-              <Box sx={{ transform: 'rotate(5deg)' }}>
-                <ToothIcon />
-              </Box>
+              <Box sx={{ transform: 'rotate(5deg)' }}><ToothIcon /></Box>
             </Box>
-            <Typography 
-              variant="h4" 
-              gutterBottom 
-              sx={{ 
-                fontWeight: 800, 
-                color: '#0077B6', 
-                letterSpacing: '-0.5px',
-                mb: 1
-              }}
-            >
+            <Typography variant="h4" gutterBottom sx={{ fontWeight: 800, color: '#0077B6', letterSpacing: '-0.5px', mb: 1 }}>
               Benvenuto in SmileCare
             </Typography>
-            <Typography 
-              variant="body1" 
-              sx={{ 
-                color: '#546E7A',
-                fontSize: '0.95rem'
-              }}
-            >
+            <Typography variant="body1" sx={{ color: '#546E7A', fontSize: '0.95rem' }}>
               Crea il tuo account per prenotare visite in pochi click
             </Typography>
           </Box>
 
           <Divider sx={{ mb: 4, opacity: 0.3 }} />
 
-          {/* Alert errori */}
+          {/* ALERT ERRORI */}
           {(error || formError) && (
-            <Alert 
-              severity="error" 
-              sx={{ 
-                mb: 4, 
-                borderRadius: 2,
-                border: '1px solid rgba(211, 47, 47, 0.2)'
-              }}
-            >
-              {error || formError}
+            <Alert severity="error" sx={{ mb: 4, borderRadius: 2, border: '1px solid rgba(211, 47, 47, 0.2)' }}>
+              {formError || getFriendlyErrorMessage(error)}
             </Alert>
           )}
 
-          {/* Form */}
           <Box component="form" onSubmit={handleSubmit} autoComplete="new-password">
             <Stack spacing={3} sx={{ width: '100%' }}>
               
-              {/* Nome */}
+              <TextField fullWidth label="Nome" name="firstName" value={formData.firstName} onChange={handleChange} required variant="outlined" sx={{'& .MuiOutlinedInput-root': {borderRadius: 2}}} InputProps={{ startAdornment: (<InputAdornment position="start"><PersonIcon sx={{ color: '#00B4D8' }} /></InputAdornment>) }} />
+
+              <TextField fullWidth label="Cognome" name="lastName" value={formData.lastName} onChange={handleChange} required variant="outlined" sx={{'& .MuiOutlinedInput-root': {borderRadius: 2}}} InputProps={{ startAdornment: (<InputAdornment position="start"><PersonIcon sx={{ color: '#00B4D8' }} /></InputAdornment>) }} />
+
               <TextField 
-                fullWidth 
-                label="Nome" 
-                name="firstName" 
-                value={formData.firstName} 
-                onChange={handleChange} 
-                required 
-                variant="outlined"
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: 2,
-                    '&:hover fieldset': {
-                      borderColor: '#00B4D8',
-                    },
-                    '&.Mui-focused fieldset': {
-                      borderColor: '#0077B6',
-                    }
-                  }
-                }}
-                InputProps={{ 
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <PersonIcon sx={{ color: '#00B4D8' }} />
-                    </InputAdornment>
-                  ) 
-                }} 
+                fullWidth type="date" label="Data di Nascita" name="birth" value={formData.birth} onChange={handleChange} required variant="outlined" InputLabelProps={{ shrink: true }}
+                sx={{'& .MuiOutlinedInput-root': {borderRadius: 2}}} 
+                InputProps={{ startAdornment: (<InputAdornment position="start"><CakeIcon sx={{ color: '#00B4D8' }} /></InputAdornment>) }} 
               />
 
-              {/* Cognome */}
-              <TextField 
-                fullWidth 
-                label="Cognome" 
-                name="lastName" 
-                value={formData.lastName} 
-                onChange={handleChange} 
-                required 
-                variant="outlined"
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: 2,
-                    '&:hover fieldset': {
-                      borderColor: '#00B4D8',
-                    },
-                    '&.Mui-focused fieldset': {
-                      borderColor: '#0077B6',
-                    }
-                  }
-                }}
-                InputProps={{ 
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <PersonIcon sx={{ color: '#00B4D8' }} />
-                    </InputAdornment>
-                  ) 
-                }} 
-              />
+              <TextField fullWidth label="Email" name="email" type="email" value={formData.email} onChange={handleChange} required variant="outlined" autoComplete="off" sx={{'& .MuiOutlinedInput-root': {borderRadius: 2}}} InputProps={{ startAdornment: (<InputAdornment position="start"><EmailIcon sx={{ color: '#00B4D8' }} /></InputAdornment>) }} />
 
-              {/* Email */}
-              <TextField 
-                fullWidth 
-                label="Email" 
-                name="email" 
-                type="email" 
-                value={formData.email} 
-                onChange={handleChange} 
-                required 
-                variant="outlined"
-                autoComplete="off"
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: 2,
-                    '&:hover fieldset': {
-                      borderColor: '#00B4D8',
-                    },
-                    '&.Mui-focused fieldset': {
-                      borderColor: '#0077B6',
-                    }
-                  }
-                }}
-                InputProps={{ 
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <EmailIcon sx={{ color: '#00B4D8' }} />
-                    </InputAdornment>
-                  ) 
-                }} 
-              />
+              <TextField fullWidth label="Telefono" name="phone" type="tel" value={formData.phone} onChange={handleChange} required variant="outlined" placeholder="+39 ..." sx={{'& .MuiOutlinedInput-root': {borderRadius: 2}}} InputProps={{ startAdornment: (<InputAdornment position="start"><PhoneIcon sx={{ color: '#00B4D8' }} /></InputAdornment>) }} />
 
-              {/* Telefono */}
-              <TextField 
-                fullWidth 
-                label="Telefono" 
-                name="phone" 
-                type="tel" 
-                value={formData.phone} 
-                onChange={handleChange} 
-                required 
-                variant="outlined" 
-                placeholder="+39 ..."
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: 2,
-                    '&:hover fieldset': {
-                      borderColor: '#00B4D8',
-                    },
-                    '&.Mui-focused fieldset': {
-                      borderColor: '#0077B6',
-                    }
-                  }
-                }}
-                InputProps={{ 
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <PhoneIcon sx={{ color: '#00B4D8' }} />
-                    </InputAdornment>
-                  ) 
-                }} 
-              />
+              <TextField fullWidth label="Password" name="password" type={showPassword ? 'text' : 'password'} value={formData.password} onChange={handleChange} required variant="outlined" autoComplete="new-password" sx={{'& .MuiOutlinedInput-root': {borderRadius: 2}}} InputProps={{ startAdornment: (<InputAdornment position="start"><LockIcon sx={{ color: '#00B4D8' }} /></InputAdornment>), endAdornment: (<InputAdornment position="end"><IconButton onClick={() => setShowPassword(!showPassword)} edge="end" sx={{ color: '#00B4D8' }}>{showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}</IconButton></InputAdornment>) }} />
 
-              {/* Password */}
-              <TextField 
-                fullWidth 
-                label="Password" 
-                name="password" 
-                type={showPassword ? 'text' : 'password'} 
-                value={formData.password} 
-                onChange={handleChange} 
-                required 
-                variant="outlined"
-                autoComplete="new-password"
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: 2,
-                    '&:hover fieldset': {
-                      borderColor: '#00B4D8',
-                    },
-                    '&.Mui-focused fieldset': {
-                      borderColor: '#0077B6',
-                    }
-                  }
-                }}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <LockIcon sx={{ color: '#00B4D8' }} />
-                    </InputAdornment>
-                  ),
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton 
-                        onClick={() => setShowPassword(!showPassword)} 
-                        edge="end"
-                        sx={{ color: '#00B4D8' }}
-                      >
-                        {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                      </IconButton>
-                    </InputAdornment>
-                  )
-                }} 
-              />
-
-              {/* Conferma Password */}
-              <TextField 
-                fullWidth 
-                label="Conferma Password" 
-                name="confirmPassword" 
-                type={showConfirmPassword ? 'text' : 'password'} 
-                value={formData.confirmPassword} 
-                onChange={handleChange} 
-                required 
-                variant="outlined"
-                autoComplete="new-password"
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: 2,
-                    '&:hover fieldset': {
-                      borderColor: '#00B4D8',
-                    },
-                    '&.Mui-focused fieldset': {
-                      borderColor: '#0077B6',
-                    }
-                  }
-                }}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <LockIcon sx={{ color: '#00B4D8' }} />
-                    </InputAdornment>
-                  ),
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton 
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)} 
-                        edge="end"
-                        sx={{ color: '#00B4D8' }}
-                      >
-                        {showConfirmPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                      </IconButton>
-                    </InputAdornment>
-                  )
-                }} 
-              />
+              <TextField fullWidth label="Conferma Password" name="confirmPassword" type={showConfirmPassword ? 'text' : 'password'} value={formData.confirmPassword} onChange={handleChange} required variant="outlined" autoComplete="new-password" sx={{'& .MuiOutlinedInput-root': {borderRadius: 2}}} InputProps={{ startAdornment: (<InputAdornment position="start"><LockIcon sx={{ color: '#00B4D8' }} /></InputAdornment>), endAdornment: (<InputAdornment position="end"><IconButton onClick={() => setShowConfirmPassword(!showConfirmPassword)} edge="end" sx={{ color: '#00B4D8' }}>{showConfirmPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}</IconButton></InputAdornment>) }} />
             </Stack>
 
-            {/* Bottone Submit */}
             <Box sx={{ mt: 4, width: '100%' }}>
-              {loading ? (
-                <LoadingSpinner />
-              ) : (
-                <Button 
-                  type="submit" 
-                  fullWidth 
-                  variant="contained" 
-                  size="large" 
-                  sx={{ 
-                    py: 1.8, 
-                    fontSize: '1.05rem', 
-                    fontWeight: 700, 
-                    borderRadius: 2.5,
-                    background: 'linear-gradient(135deg, #00B4D8 0%, #0077B6 100%)',
-                    boxShadow: '0 8px 24px rgba(0, 180, 216, 0.35)',
-                    textTransform: 'none',
-                    transition: 'all 0.3s ease',
-                    '&:hover': {
-                      background: 'linear-gradient(135deg, #0096B8 0%, #005F96 100%)',
-                      boxShadow: '0 12px 32px rgba(0, 180, 216, 0.45)',
-                      transform: 'translateY(-2px)'
-                    }
-                  }}
-                >
+              {loading ? ( <LoadingSpinner /> ) : (
+                <Button type="submit" fullWidth variant="contained" size="large" sx={{ py: 1.8, fontSize: '1.05rem', fontWeight: 700, borderRadius: 2.5, background: 'linear-gradient(135deg, #00B4D8 0%, #0077B6 100%)', boxShadow: '0 8px 24px rgba(0, 180, 216, 0.35)', textTransform: 'none', transition: 'all 0.3s ease', '&:hover': { background: 'linear-gradient(135deg, #0096B8 0%, #005F96 100%)', boxShadow: '0 12px 32px rgba(0, 180, 216, 0.45)', transform: 'translateY(-2px)' } }}>
                   Registrati Ora
                 </Button>
               )}
             </Box>
 
-            {/* Footer */}
-            <Stack 
-              direction="row" 
-              spacing={1} 
-              justifyContent="center" 
-              sx={{ 
-                mt: 4, 
-                pt: 3.5, 
-                borderTop: '1px solid rgba(0, 0, 0, 0.08)' 
-              }}
-            >
-              <Typography variant="body2" color="text.secondary">
-                Hai già un account?
-              </Typography>
-              <Typography 
-                variant="body2" 
-                component="span" 
-                sx={{ 
-                  color: '#0077B6', 
-                  fontWeight: 700, 
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  '&:hover': { 
-                    color: '#00B4D8',
-                    textDecoration: 'underline' 
-                  } 
-                }} 
-                onClick={() => navigate('/login')}
-              >
+            <Stack direction="row" spacing={1} justifyContent="center" sx={{ mt: 4, pt: 3.5, borderTop: '1px solid rgba(0, 0, 0, 0.08)' }}>
+              <Typography variant="body2" color="text.secondary">Hai già un account?</Typography>
+              <Typography variant="body2" component="span" sx={{ color: '#0077B6', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s ease', '&:hover': { color: '#00B4D8', textDecoration: 'underline' } }} onClick={() => navigate('/login')}>
                 Accedi qui
               </Typography>
             </Stack>

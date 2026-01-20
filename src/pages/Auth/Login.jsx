@@ -2,15 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import {
-  Container,
-  Paper,
-  TextField,
-  Button,
-  Typography,
-  Box,
-  Alert,
-  InputAdornment,
-  IconButton,
+  Container, Paper, TextField, Button, Typography, Box, Alert,
+  InputAdornment, IconButton,
 } from '@mui/material';
 import { loginRequest, clearError } from '../../redux/slices/authSlice';
 import LoadingSpinner from '../../components/LoadingSpinner';
@@ -18,8 +11,8 @@ import EmailIcon from '@mui/icons-material/Email';
 import LockIcon from '@mui/icons-material/Lock';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import { Link as RouterLink } from 'react-router-dom';
 
-// Icona
 const ToothIcon = () => (
   <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor">
     <path d="M12,2C9.5,2 7.5,3.5 6.5,5.5C5.5,7.5 5,10 5,12C5,14.5 5.5,16.5 6.5,18C7,18.75 7.5,19.25 8,19.5C8.5,19.75 8.75,19.75 9,19.75C9.5,19.75 10,19.5 10.5,19C11,18.5 11.5,17.5 12,16C12.5,17.5 13,18.5 13.5,19C14,19.5 14.5,19.75 15,19.75C15.25,19.75 15.5,19.75 16,19.5C16.5,19.25 17,18.75 17.5,18C18.5,16.5 19,14.5 19,12C19,10 18.5,7.5 17.5,5.5C16.5,3.5 14.5,2 12,2M12,4C13.5,4 15,5 15.5,6.5C16,8 16.5,10 16.5,12C16.5,13.5 16.25,15 15.75,16C15.5,16.5 15.25,16.75 15,17C15,17 14.75,17 14.5,16.75C14.25,16.5 14,16 13.5,15C13,14 12.5,12.5 12,11C11.5,12.5 11,14 10.5,15C10,16 9.75,16.5 9.5,16.75C9.25,17 9,17 9,17C8.75,16.75 8.5,16.5 8.25,16C7.75,15 7.5,13.5 7.5,12C7.5,10 8,8 8.5,6.5C9,5 10.5,4 12,4Z"/>
@@ -31,11 +24,7 @@ const Login = () => {
   const dispatch = useDispatch();
   const { loading, error, isAuthenticated } = useSelector((state) => state.auth);
 
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-  });
-
+  const [formData, setFormData] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
@@ -45,16 +34,11 @@ const Login = () => {
   }, [isAuthenticated, navigate]);
 
   useEffect(() => {
-    return () => {
-      dispatch(clearError());
-    };
+    return () => { dispatch(clearError()); };
   }, [dispatch]);
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = (e) => {
@@ -62,92 +46,59 @@ const Login = () => {
     dispatch(loginRequest(formData));
   };
 
+  const getFriendlyErrorMessage = (rawError) => {
+    if (!rawError) return null;
+    const errString = String(rawError).toLowerCase();
+
+    if (errString.includes('403') || errString.includes('401') || errString.includes('bad credentials')) {
+      return "Email o password errata. Per favore riprova.";
+    }
+    if (errString.includes('network error')) {
+      return "Impossibile connettersi al server. Controlla la connessione.";
+    }
+    return "Si è verificato un errore durante l'accesso. Riprova.";
+  };
+
   return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #E0F7FA 0%, #B2EBF2 50%, #80DEEA 100%)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        py: 6,
-        px: 2
-      }}
-    >
-      <Container maxWidth="sm">
-        <Paper
-          elevation={0}
-          sx={{
-            p: { xs: 4, sm: 5, md: 6 },
-            borderRadius: 4,
-            boxShadow: '0 20px 60px rgba(0, 119, 182, 0.15)',
-            background: 'rgba(255, 255, 255, 0.98)',
-            backdropFilter: 'blur(20px)',
-            border: '1px solid rgba(0, 180, 216, 0.1)',
-            width: '100%',
-            maxWidth: '500px',
-            mx: 'auto'
+    <Box sx={{ 
+      minHeight: '100vh', 
+      background: 'radial-gradient(circle at top left, #F0F9FF, #E0F7FA)',
+      display: 'flex', 
+      alignItems: 'center',
+      py: 6 
+    }}>
+      <Container maxWidth="xs">
+        <Paper 
+          elevation={0} 
+          sx={{ 
+            p: 4, 
+            borderRadius: 4, 
+            boxShadow: '0 10px 40px rgba(0, 180, 216, 0.15)',
+            border: '1px solid rgba(255,255,255,0.8)',
+            background: 'rgba(255,255,255,0.95)',
+            backdropFilter: 'blur(10px)'
           }}
         >
-          {/* Header con Logo */}
           <Box sx={{ textAlign: 'center', mb: 4 }}>
-            <Box
-              sx={{
-                width: 80,
-                height: 80,
-                mx: 'auto',
-                mb: 2.5,
-                background: 'linear-gradient(135deg, #00B4D8 0%, #0077B6 100%)',
-                borderRadius: '20px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 8px 24px rgba(0, 180, 216, 0.3)',
-                color: '#ffffff',
-                transform: 'rotate(-5deg)',
-                transition: 'transform 0.3s ease',
-                '&:hover': {
-                  transform: 'rotate(0deg) scale(1.05)'
-                }
-              }}
-            >
-              <Box sx={{ transform: 'rotate(5deg)' }}>
-                <ToothIcon />
-              </Box>
+            <Box sx={{ 
+              width: 60, height: 60, mx: 'auto', mb: 2, 
+              bgcolor: '#E0F7FA', borderRadius: '50%', 
+              display: 'flex', alignItems: 'center', justifyContent: 'center', 
+              color: '#00B4D8' 
+            }}>
+              <ToothIcon />
             </Box>
-            <Typography
-              variant="h4"
-              component="h1"
-              gutterBottom
-              sx={{
-                fontWeight: 800,
-                color: '#0077B6',
-                letterSpacing: '-0.5px',
-                mb: 1,
-              }}
-            >
-              Bentornato
-            </Typography>
-            <Typography variant="body1" sx={{ color: '#546E7A', fontSize: '0.95rem' }}>
-              Accedi al tuo account per gestire i tuoi appuntamenti
-            </Typography>
+            <Typography variant="h5" fontWeight={800} color="#0077B6">Bentornato</Typography>
+            <Typography variant="body2" color="text.secondary">Accedi per gestire i tuoi appuntamenti</Typography>
           </Box>
 
           {error && (
-            <Alert
-              severity="error"
-              sx={{
-                mb: 4,
-                borderRadius: 2,
-                border: '1px solid rgba(211, 47, 47, 0.2)',
-              }}
-            >
-              {error}
+            <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
+              {getFriendlyErrorMessage(error)}
             </Alert>
           )}
 
-          {/* Form */}
-          <Box component="form" onSubmit={handleSubmit} autoComplete="new-password">
+          <Box component="form" onSubmit={handleSubmit} autoComplete="off">
             <TextField
               fullWidth
               label="Email"
@@ -157,29 +108,13 @@ const Login = () => {
               onChange={handleChange}
               margin="normal"
               required
-              disabled={loading}
+              variant="outlined"
               autoComplete="off"
               InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <EmailIcon sx={{ color: '#00B4D8' }} />
-                  </InputAdornment>
-                ),
+                startAdornment: <InputAdornment position="start"><EmailIcon color="action" /></InputAdornment>,
               }}
-              sx={{
-                mb: 2,
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: 2,
-                  '&:hover fieldset': {
-                    borderColor: '#00B4D8',
-                  },
-                  '&.Mui-focused fieldset': {
-                    borderColor: '#0077B6',
-                  },
-                },
-              }}
+              sx={{ mb: 2 }}
             />
-
             <TextField
               fullWidth
               label="Password"
@@ -189,77 +124,45 @@ const Login = () => {
               onChange={handleChange}
               margin="normal"
               required
-              disabled={loading}
+              variant="outlined"
               autoComplete="new-password"
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
-                    <LockIcon sx={{ color: '#00B4D8' }} />
+                    <LockIcon color="action" />
                   </InputAdornment>
                 ),
                 endAdornment: (
                   <InputAdornment position="end">
-                    <IconButton
-                      onClick={() => setShowPassword(!showPassword)}
-                      edge="end"
-                      disabled={loading}
-                      sx={{ color: '#00B4D8' }}
-                    >
+                    <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
                       {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
                     </IconButton>
                   </InputAdornment>
                 ),
               }}
-              sx={{
-                mb: 3,
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: 2,
-                  '&:hover fieldset': {
-                    borderColor: '#00B4D8',
-                  },
-                  '&.Mui-focused fieldset': {
-                    borderColor: '#0077B6',
-                  },
-                },
-              }}
+              sx={{ mb: 4 }}
             />
 
-            {loading ? (
-              <LoadingSpinner />
-            ) : (
+            <Box sx={{ position: 'relative' }}>
               <Button
                 type="submit"
                 fullWidth
                 variant="contained"
                 size="large"
+                disabled={loading}
                 sx={{
-                  py: 1.8,
-                  fontSize: '1.05rem',
+                  py: 1.5,
+                  borderRadius: 2,
+                  fontSize: '1rem',
                   fontWeight: 700,
-                  borderRadius: 2.5,
-                  background: 'linear-gradient(135deg, #00B4D8 0%, #0077B6 100%)',
-                  boxShadow: '0 8px 24px rgba(0, 180, 216, 0.35)',
-                  textTransform: 'none',
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    background: 'linear-gradient(135deg, #0096B8 0%, #005F96 100%)',
-                    boxShadow: '0 12px 32px rgba(0, 180, 216, 0.45)',
-                    transform: 'translateY(-2px)'
-                  }
+                  boxShadow: '0 4px 14px rgba(0, 180, 216, 0.4)',
                 }}
               >
-                Accedi
+                {loading ? <LoadingSpinner size={24} color="inherit" /> : 'Accedi'}
               </Button>
-            )}
+            </Box>
 
-            <Box
-              sx={{
-                mt: 4,
-                pt: 3.5,
-                borderTop: '1px solid rgba(0, 0, 0, 0.08)',
-                textAlign: 'center',
-              }}
-            >
+            <Box sx={{ mt: 3, textAlign: 'center' }}>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                 Non hai ancora un account?
               </Typography>
@@ -289,20 +192,17 @@ const Login = () => {
           </Box>
         </Paper>
 
-        {/* Info aggiuntiva */}
         <Box sx={{ textAlign: 'center', mt: 4 }}>
           <Typography variant="body2" color="text.secondary">
             Hai bisogno di aiuto?{' '}
             <Typography
-              component="span"
+              component={RouterLink}
+              to="/contact"
               sx={{
                 color: '#0077B6',
                 fontWeight: 600,
-                cursor: 'pointer',
-                '&:hover': { 
-                  color: '#00B4D8',
-                  textDecoration: 'underline' 
-                },
+                textDecoration: 'none',
+                '&:hover': { color: '#00B4D8', textDecoration: 'underline' },
               }}
             >
               Contattaci
