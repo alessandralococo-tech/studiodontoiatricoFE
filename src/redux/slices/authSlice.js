@@ -6,17 +6,15 @@ const initialState = {
   isAuthenticated: !!localStorage.getItem('token'),
   loading: false,
   error: null,
+  updateSuccess: false, // Per notificare l'avvenuto aggiornamento
 };
 
 const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    // LOGIN
-    loginRequest: (state) => {
-      state.loading = true;
-      state.error = null;
-    },
+    // LOGIN & REGISTER
+    loginRequest: (state) => { state.loading = true; state.error = null; },
     loginSuccess: (state, action) => {
       state.loading = false;
       state.isAuthenticated = true;
@@ -24,16 +22,8 @@ const authSlice = createSlice({
       state.token = action.payload.token;
       state.error = null;
     },
-    loginFailure: (state, action) => {
-      state.loading = false;
-      state.error = action.payload;
-    },
-
-    // REGISTER
-    registerRequest: (state) => {
-      state.loading = true;
-      state.error = null;
-    },
+    loginFailure: (state, action) => { state.loading = false; state.error = action.payload; },
+    registerRequest: (state) => { state.loading = true; state.error = null; },
     registerSuccess: (state, action) => {
       state.loading = false;
       state.isAuthenticated = true;
@@ -41,26 +31,33 @@ const authSlice = createSlice({
       state.token = action.payload.token;
       state.error = null;
     },
-    registerFailure: (state, action) => {
-      state.loading = false;
-      state.error = action.payload;
-    },
+    registerFailure: (state, action) => { state.loading = false; state.error = action.payload; },
 
     // FETCH PROFILE
-    fetchProfileRequest: (state) => {
-      state.loading = true;
-    },
+    fetchProfileRequest: (state) => { state.loading = true; },
     fetchProfileSuccess: (state, action) => {
       state.loading = false;
-      // Aggiorniamo i dati utente mantenendo il token esistente
       state.user = { ...state.user, ...action.payload };
-      // Aggiorniamo anche il localStorage
       localStorage.setItem('user', JSON.stringify(state.user));
     },
-    fetchProfileFailure: (state, action) => {
-      state.loading = false; 
-      console.error("Errore fetch profilo:", action.payload);
+    fetchProfileFailure: (state, action) => { state.loading = false; console.error(action.payload); },
+
+    // --- NUOVE AZIONI PER UPDATE ---
+    updateProfileRequest: (state) => { state.loading = true; state.updateSuccess = false; state.error = null; },
+    updateProfileSuccess: (state, action) => {
+      state.loading = false;
+      state.updateSuccess = true;
+      // Aggiorniamo i dati locali con quelli nuovi
+      state.user = { ...state.user, ...action.payload };
+      localStorage.setItem('user', JSON.stringify(state.user));
     },
+    updateProfileFailure: (state, action) => { state.loading = false; state.error = action.payload; },
+
+    changePasswordRequest: (state) => { state.loading = true; state.updateSuccess = false; state.error = null; },
+    changePasswordSuccess: (state) => { state.loading = false; state.updateSuccess = true; },
+    changePasswordFailure: (state, action) => { state.loading = false; state.error = action.payload; },
+
+    resetUpdateStatus: (state) => { state.updateSuccess = false; state.error = null; },
 
     // LOGOUT
     logout: (state) => {
@@ -71,25 +68,17 @@ const authSlice = createSlice({
       localStorage.removeItem('token');
       localStorage.removeItem('user');
     },
-
-    clearError: (state) => {
-      state.error = null;
-    },
+    clearError: (state) => { state.error = null; },
   },
 });
 
 export const {
-  loginRequest,
-  loginSuccess,
-  loginFailure,
-  registerRequest,
-  registerSuccess,
-  registerFailure,
-  fetchProfileRequest,
-  fetchProfileSuccess,
-  fetchProfileFailure,
-  logout,
-  clearError,
+  loginRequest, loginSuccess, loginFailure,
+  registerRequest, registerSuccess, registerFailure,
+  fetchProfileRequest, fetchProfileSuccess, fetchProfileFailure,
+  updateProfileRequest, updateProfileSuccess, updateProfileFailure,
+  changePasswordRequest, changePasswordSuccess, changePasswordFailure,
+  resetUpdateStatus, logout, clearError,
 } = authSlice.actions;
 
 export default authSlice.reducer;

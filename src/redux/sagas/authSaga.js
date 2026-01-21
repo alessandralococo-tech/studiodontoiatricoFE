@@ -2,7 +2,9 @@ import { call, put, takeLatest, select } from 'redux-saga/effects';
 import {
   loginRequest, loginSuccess, loginFailure,
   registerRequest, registerSuccess, registerFailure,
-  fetchProfileRequest, fetchProfileSuccess, fetchProfileFailure
+  fetchProfileRequest, fetchProfileSuccess, fetchProfileFailure,
+  updateProfileRequest, updateProfileSuccess, updateProfileFailure,
+  changePasswordRequest, changePasswordSuccess, changePasswordFailure
 } from '../slices/authSlice';
 import authApi from '../../api/authApi';
 
@@ -21,6 +23,7 @@ const parseJwt = (token) => {
   }
 };
 
+// --- LOGIN SAGA ---
 function* loginSaga(action) {
   try {
     const { email, password } = action.payload;
@@ -46,13 +49,10 @@ function* loginSaga(action) {
   }
 }
 
-// REGISTER SAGA
+// --- REGISTER SAGA ---
 function* registerSaga(action) {
   try {
-    // Estraiamo tutti i dati dal payload dell'azione
     const { firstName, lastName, email, password, phone, birth } = action.payload;
-    
-    // Passiamo TUTTI i dati all'API
     const response = yield call(authApi.register, firstName, lastName, email, password, phone, birth);
     
     const token = response.token || response.accessToken;
@@ -63,7 +63,8 @@ function* registerSaga(action) {
       lastName: lastName,
       role: 'ROLE_USER',
       phone: phone,
-      birth: birth
+      birth: birth,
+      id: response.id
     };
 
     localStorage.setItem('token', token);
@@ -77,7 +78,7 @@ function* registerSaga(action) {
   }
 }
 
-// FETCH PROFILE SAGA
+// --- FETCH PROFILE SAGA ---
 function* fetchProfileSaga() {
   try {
     const state = yield select();
@@ -93,12 +94,12 @@ function* fetchProfileSaga() {
 
     console.log("Dati Profilo Ricevuti dal Backend:", profileData);
 
+    // Normalizzazione dati
     const normalizedData = {
       id: profileData.id,
       email: profileData.email,
       firstName: profileData.firstName || profileData.name,
       lastName: profileData.lastName || profileData.surname,
-      // Gestione sicura se i campi sono null
       phone: profileData.phone || profileData.phoneNumber || '',
       birth: profileData.birth || profileData.birthDate || '',
       specialization: profileData.specialization || ''
@@ -113,8 +114,46 @@ function* fetchProfileSaga() {
   }
 }
 
+// UPDATE PROFILE SAGA
+function* updateProfileSaga(action) {
+  try {
+    // action.payload contiene { firstName, lastName, phone, birth }
+    const updatedProfile = yield call(authApi.updatePatientProfile, action.payload);
+    
+    // Normalizziamo la risposta per aggiornare lo store Redux senza dover ricaricare la pagina
+    const normalizedData = {
+      firstName: updatedProfile.firstName || updatedProfile.name,
+      lastName: updatedProfile.lastName || updatedProfile.surname,
+      phone: updatedProfile.phone || updatedProfile.phoneNumber,
+      birth: updatedProfile.birth || updatedProfile.birthDate
+    };
+    
+    yield put(updateProfileSuccess(normalizedData));
+  } catch (error) {
+    // Gestiamo l'errore se il backend risponde con un messaggio specifico
+    const errorMessage = error.response?.data?.message || error.message || "Errore durante l'aggiornamento del profilo";
+    yield put(updateProfileFailure(errorMessage));
+  }
+}
+
+// CHANGE PASSWORD SAGA
+function* changePasswordSaga(action) {
+  try {
+    const { oldPassword, newPassword, confirmPassword } = action.payload;
+    // Chiamata all'API
+    yield call(authApi.changePatientPassword, oldPassword, newPassword, confirmPassword);
+    
+    yield put(changePasswordSuccess());
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || "Errore cambio password. Verifica la vecchia password.";
+    yield put(changePasswordFailure(errorMessage));
+  }
+}
+
 export default function* authSaga() {
   yield takeLatest(loginRequest.type, loginSaga);
   yield takeLatest(registerRequest.type, registerSaga);
   yield takeLatest(fetchProfileRequest.type, fetchProfileSaga);
+  yield takeLatest(updateProfileRequest.type, updateProfileSaga);
+  yield takeLatest(changePasswordRequest.type, changePasswordSaga);
 }
