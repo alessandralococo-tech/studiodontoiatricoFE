@@ -11,12 +11,14 @@ export const authApi = {
   },
 
   // Registra paziente
-  register: async (firstName, lastName, email, password) => {
+  register: async (firstName, lastName, email, password, phone, birth) => {
     const response = await axiosInstance.post('/auth/register', {
       firstName,
       lastName,
       email,
       password,
+      phone,
+      birth
     });
     return response.data;
   },

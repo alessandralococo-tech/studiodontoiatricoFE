@@ -3,11 +3,13 @@ import { useDispatch, useSelector } from 'react-redux';
 import {
   Container, Typography, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
   Chip, Alert, Box, Card, CardContent, Dialog, DialogTitle, DialogContent, DialogActions,
-  Button, TextField, IconButton, Snackbar, Tabs, Tab, Fade, Stack, Divider
+  Button, TextField, IconButton, Snackbar, Tabs, Tab, Fade, Divider
 } from '@mui/material';
-import { fetchMyAppointmentsRequest, cancelAppointmentRequest, updateAppointmentRequest } from '../../redux/slices/appointmentSlice';
+import { fetchMyAppointmentsRequest, cancelAppointmentRequest } from '../../redux/slices/appointmentSlice';
 import { fetchMyPaymentsRequest } from '../../redux/slices/paymentSlice';
 import LoadingSpinner from '../../components/LoadingSpinner';
+
+// Icone Originali
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
@@ -15,12 +17,12 @@ import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
 import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 import CloseIcon from '@mui/icons-material/Close';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
-import MessageIcon from '@mui/icons-material/Message';
 import HistoryIcon from '@mui/icons-material/History';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import PaymentIcon from '@mui/icons-material/Payment';
 import PendingIcon from '@mui/icons-material/Pending';
 import PersonIcon from '@mui/icons-material/Person';
+import EmailIcon from '@mui/icons-material/Email';
 
 const MyAppointments = () => {
   const dispatch = useDispatch();
@@ -30,8 +32,7 @@ const MyAppointments = () => {
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
-  const [showNoteDialog, setShowNoteDialog] = useState(false);
-  const [note, setNote] = useState('');
+  
   const [cancellationReason, setCancellationReason] = useState('');
   const [showSuccessSnackbar, setShowSuccessSnackbar] = useState(false);
   const [reasonError, setReasonError] = useState(false);
@@ -89,15 +90,22 @@ const MyAppointments = () => {
     return { upcomingAppointments: upcoming, pastAppointments: past };
   }, [list]);
 
-  const getStatusColor = (status) => {
-    switch (status) { case 'BOOKED': return 'primary'; case 'COMPLETED': return 'success'; case 'CANCELLED': return 'error'; default: return 'default'; }
+  // LOGICA PER IL NOME DEL MEDICO (Supporta sia il vecchio che il nuovo formato)
+  const getDoctorName = (appointment) => {
+    if (!appointment) return "Medico";
+    // Nuovo formato DTO
+    if (appointment.doctorFirstName || appointment.doctorLastName) {
+        return `Dr. ${appointment.doctorFirstName} ${appointment.doctorLastName}`;
+    }
+    if (appointment.doctor) {
+        return `Dr. ${appointment.doctor.firstName || appointment.doctor.name} ${appointment.doctor.lastName || appointment.doctor.surname}`;
+    }
+    return `Medico ID: ${appointment.doctorId}`;
   };
-  const getStatusLabel = (status) => {
-    switch (status) { case 'BOOKED': return 'Prenotato'; case 'COMPLETED': return 'Completato'; case 'CANCELLED': return 'Annullato'; default: return status; }
-  };
-  const getStatusIcon = (status) => {
-    switch (status) { case 'BOOKED': return <HourglassEmptyIcon sx={{ fontSize: 18 }} />; case 'COMPLETED': return <CheckCircleIcon sx={{ fontSize: 18 }} />; case 'CANCELLED': return <CancelIcon sx={{ fontSize: 18 }} />; default: return null; }
-  };
+
+  const getStatusColor = (status) => { switch (status) { case 'BOOKED': return 'primary'; case 'COMPLETED': return 'success'; case 'CANCELLED': return 'error'; default: return 'default'; }};
+  const getStatusLabel = (status) => { switch (status) { case 'BOOKED': return 'Prenotato'; case 'COMPLETED': return 'Completato'; case 'CANCELLED': return 'Annullato'; default: return status; }};
+  const getStatusIcon = (status) => { switch (status) { case 'BOOKED': return <HourglassEmptyIcon sx={{ fontSize: 18 }} />; case 'COMPLETED': return <CheckCircleIcon sx={{ fontSize: 18 }} />; case 'CANCELLED': return <CancelIcon sx={{ fontSize: 18 }} />; default: return null; }};
   const getPaymentStatusChip = (paymentStatus) => {
     switch(paymentStatus) {
       case 'PAID': return <Chip icon={<CheckCircleIcon />} label="Pagato" color="success" size="small" sx={{ fontWeight: 600 }} />;
@@ -114,38 +122,10 @@ const MyAppointments = () => {
   const handleCloseDetails = () => { setShowDetailsDialog(false); setSelectedAppointment(null); };
   const handleOpenCancel = () => { setShowDetailsDialog(false); setShowCancelDialog(true); };
   const handleCloseCancel = () => { setShowCancelDialog(false); setCancellationReason(''); setReasonError(false); setShowDetailsDialog(true); };
+  
   const handleConfirmCancel = () => {
     if (!cancellationReason.trim()) { setReasonError(true); return; }
     dispatch(cancelAppointmentRequest({ id: selectedAppointment.id, reason: cancellationReason }));
-  };
-  const handleOpenNote = () => { setNote(selectedAppointment.notes || ''); setShowDetailsDialog(false); setShowNoteDialog(true); };
-  const handleCloseNote = () => { setShowNoteDialog(false); setNote(''); setShowDetailsDialog(true); };
-
-  const handleSendNote = () => {
-    if (note.trim()) {
-      const updatePayload = {
-        id: selectedAppointment.id,
-        patientEmail: selectedAppointment.patient?.email,
-        doctorId: selectedAppointment.doctor?.id,
-        appointmentDate: selectedAppointment.appointmentDate,
-        timeSlot: selectedAppointment.timeSlot,
-        durationMinutes: selectedAppointment.durationMinutes,
-        status: selectedAppointment.status,
-        reason: selectedAppointment.reason,
-        notes: note // Nuova nota
-      };
-
-      dispatch(updateAppointmentRequest({ id: selectedAppointment.id, data: updatePayload }));
-      
-      setShowSuccessSnackbar(true);
-      setShowNoteDialog(false);
-      setNote('');
-      setSelectedAppointment(null);
-      // Ricarica la lista per vedere le modifiche
-      setTimeout(() => dispatch(fetchMyAppointmentsRequest()), 500); 
-    } else {
-      alert('Inserisci un messaggio prima di inviare');
-    }
   };
 
   const renderTable = (appointments, sectionType) => {
@@ -166,7 +146,7 @@ const MyAppointments = () => {
         <Table>
           <TableHead>
             <TableRow sx={{ background: isCancelled ? '#ef5350' : (isHistory ? '#e0e0e0' : 'linear-gradient(135deg, #00B4D8 0%, #0096C7 100%)') }}>
-              {['Data', 'Orario', 'Durata', 'Importo', 'Pagamento', 'Stato'].map((header, i) => (
+              {['Data', 'Orario', 'Medico', 'Importo', 'Pagamento', 'Stato'].map((header, i) => (
                 <TableCell key={i} sx={{ color: (isHistory && !isCancelled) ? '#666' : '#ffffff', fontWeight: 700, fontSize: '1rem', py: 2, borderBottom: 'none' }}>{header}</TableCell>
               ))}
             </TableRow>
@@ -186,7 +166,14 @@ const MyAppointments = () => {
                     </Box>
                   </TableCell>
                   <TableCell sx={{ py: 3, borderBottom: 'none' }}><Chip label={formatTimeSlot(appointment.timeSlot)} sx={{ fontWeight: 700, fontSize: '0.9rem', bgcolor: isCancelled ? '#ffcdd2' : (isHistory ? '#e0e0e0' : '#00B4D8'), color: isCancelled ? '#d32f2f' : (isHistory ? '#666' : '#ffffff') }} /></TableCell>
-                  <TableCell sx={{ py: 3, borderBottom: 'none' }}><Typography variant="body2" color="text.secondary">{appointment.durationMinutes} min</Typography></TableCell>
+                  
+                  {/* COLONNA MEDICO */}
+                  <TableCell sx={{ py: 3, borderBottom: 'none' }}>
+                    <Typography variant="body2" sx={{ fontWeight: 600, color: '#333' }}>
+                        {getDoctorName(appointment)}
+                    </Typography>
+                  </TableCell>
+
                   <TableCell sx={{ py: 3, borderBottom: 'none' }}><Typography variant="body1" sx={{ fontWeight: 700, color: '#00B4D8' }}>€{price.toFixed(2)}</Typography></TableCell>
                   <TableCell sx={{ py: 3, borderBottom: 'none' }}>{getPaymentStatusChip(paymentStatus)}</TableCell>
                   <TableCell sx={{ py: 3, borderBottom: 'none' }}><Chip icon={getStatusIcon(effectiveStatus)} label={getStatusLabel(effectiveStatus)} color={getStatusColor(effectiveStatus)} variant={isCancelled || isHistory ? "outlined" : "filled"} size="small" sx={{ fontWeight: 700 }} /></TableCell>
@@ -236,12 +223,13 @@ const MyAppointments = () => {
           </DialogTitle>
           <DialogContent sx={{ pt: 4, pb: 3 }}>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-              {/* Info Medico (NUOVO) */}
+              
+              {/* Info Medico*/}
               <Box sx={{ p: 2, bgcolor: '#F0F9FF', borderRadius: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
                 <PersonIcon color="primary" />
                 <Box>
                   <Typography variant="caption" color="text.secondary">Medico Curante</Typography>
-                  <Typography variant="h6" fontWeight={700}>Dr. {selectedAppointment.doctor?.firstName} {selectedAppointment.doctor?.lastName}</Typography>
+                  <Typography variant="h6" fontWeight={700}>{getDoctorName(selectedAppointment)}</Typography>
                 </Box>
               </Box>
 
@@ -252,26 +240,25 @@ const MyAppointments = () => {
                 <Box><Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, mb: 1 }}>PAGAMENTO</Typography>{getPaymentStatusChip(getPaymentStatus(selectedAppointment))}</Box>
               </Box>
 
-              {/* Sezione Note e Motivo*/}
               <Divider />
               <Box>
                 <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, mb: 0.5 }}>MOTIVO DELLA VISITA</Typography>
                 <Typography variant="body2">{selectedAppointment.reason || "Nessun motivo specificato"}</Typography>
               </Box>
               <Box>
-                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, mb: 0.5 }}>NOTE AGGIUNTIVE</Typography>
+                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, mb: 0.5 }}>NOTE</Typography>
                 <Typography variant="body2" sx={{ fontStyle: 'italic', color: '#555' }}>{selectedAppointment.notes || "Nessuna nota presente"}</Typography>
               </Box>
             </Box>
           </DialogContent>
+ 
           <DialogActions sx={{ p: 3, gap: 2, flexDirection: 'column' }}>
-            <Button fullWidth variant="contained" startIcon={<MessageIcon />} onClick={handleOpenNote} sx={{ bgcolor: '#00B4D8', py: 1.5, fontWeight: 700, '&:hover': { bgcolor: '#0096C7' } }}>Modifica/Invia Nota</Button>
             <Button fullWidth variant="outlined" startIcon={<DeleteOutlineIcon />} onClick={handleOpenCancel} sx={{ borderColor: '#ef4444', color: '#ef4444', py: 1.5, fontWeight: 700, '&:hover': { borderColor: '#dc2626', bgcolor: '#fef2f2' } }}>Annulla Appuntamento</Button>
           </DialogActions>
         </Dialog>
       )}
 
-      {/* Altri dialog (Cancel, Note) */}
+      {/* DIALOG CONFERMA CANCELLAZIONE */}
       <Dialog open={showCancelDialog} onClose={handleCloseCancel} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 4 } }}>
         <DialogTitle sx={{ background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)', color: '#ffffff', fontWeight: 700, py: 3 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}><CancelIcon sx={{ fontSize: 32 }} /><Typography variant="h5" sx={{ fontWeight: 700 }}>Conferma Annullamento</Typography></Box>
@@ -283,19 +270,6 @@ const MyAppointments = () => {
         <DialogActions sx={{ p: 3, gap: 2 }}>
           <Button onClick={handleCloseCancel} variant="outlined" sx={{ flex: 1, py: 1.5, fontWeight: 600 }}>Torna Indietro</Button>
           <Button onClick={handleConfirmCancel} variant="contained" disabled={loading} sx={{ flex: 1, bgcolor: '#ef4444', py: 1.5, fontWeight: 700, '&:hover': { bgcolor: '#dc2626' } }}>{loading ? 'Annullamento...' : 'Conferma Annullamento'}</Button>
-        </DialogActions>
-      </Dialog>
-
-      <Dialog open={showNoteDialog} onClose={handleCloseNote} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 4 } }}>
-        <DialogTitle sx={{ background: 'linear-gradient(135deg, #00B4D8 0%, #0096C7 100%)', color: '#ffffff', fontWeight: 700, py: 3 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}><MessageIcon /><Typography variant="h5" sx={{ fontWeight: 700 }}>Invia Nota al Medico</Typography></Box>
-        </DialogTitle>
-        <DialogContent sx={{ pt: 4 }}>
-          <TextField fullWidth multiline rows={4} value={note} onChange={(e) => setNote(e.target.value)} placeholder="Scrivi qui il tuo messaggio..." variant="outlined" sx={{ '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#00B4D8' } } }} />
-        </DialogContent>
-        <DialogActions sx={{ p: 3, gap: 2 }}>
-          <Button onClick={handleCloseNote} variant="outlined" sx={{ flex: 1, py: 1.5 }}>Annulla</Button>
-          <Button onClick={handleSendNote} variant="contained" sx={{ flex: 1, bgcolor: '#00B4D8', py: 1.5, fontWeight: 700 }}>Invia</Button>
         </DialogActions>
       </Dialog>
 

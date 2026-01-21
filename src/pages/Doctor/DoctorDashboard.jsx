@@ -161,7 +161,12 @@ const DoctorDashboard = () => {
         durationMinutes: selectedAppt.durationMinutes || 15,
         status: selectedAppt.status,
         reason: selectedAppt.reason,
-        notes: selectedAppt.notes
+        notes: selectedAppt.notes,
+        // Reinvia i dati paziente per non perderli nel backend se richiesto
+        patientName: selectedAppt.patientName,
+        patientSurname: selectedAppt.patientSurname,
+        patientPhone: selectedAppt.patientPhone,
+        patientBirth: selectedAppt.patientBirth
       };
       
       dispatch(updateAppointmentRequest({ id: selectedAppt.id, data: updatePayload }));
@@ -182,6 +187,28 @@ const DoctorDashboard = () => {
       case 'CANCELLED': return 'linear-gradient(135deg, #E53935 0%, #C62828 100%)';
       default: return 'linear-gradient(135deg, #00B4D8 0%, #0096C7 100%)';
     }
+  };
+
+  // HELPER per estrarre i dati paziente dai vari formati possibili
+  const getPatientInfo = (appt) => {
+    if (!appt) return {};
+    return {
+        name: appt.patientName || appt.patient?.name || appt.patientFirstName || "Paziente",
+        surname: appt.patientSurname || appt.patient?.surname || appt.patientLastName || "",
+        email: appt.patientEmail || appt.patient?.email || "Email non disponibile",
+        phone: appt.patientPhone || appt.patient?.phone || "Telefono non disponibile",
+        birth: appt.patientBirth || appt.patient?.birth || null
+    };
+  };
+
+  // Helper per formattare la data di nascita
+  const formatBirthDate = (birthData) => {
+    if (!birthData) return "Data non disponibile";
+    if (Array.isArray(birthData)) {
+        const [year, month, day] = birthData;
+        return `${day}/${month}/${year}`;
+    }
+    return new Date(birthData).toLocaleDateString('it-IT');
   };
 
   return (
@@ -242,6 +269,8 @@ const DoctorDashboard = () => {
                   </Box>
                   {weekDays.map((day, i) => {
                     const appointment = getAppointmentForSlot(day, slot);
+                    const patientInfo = getPatientInfo(appointment);
+
                     return (
                       <Box key={i} sx={{ flex: 1, borderRight: '1px solid #f8f8f8', p: 0.5 }}>
                         {appointment && (
@@ -256,7 +285,7 @@ const DoctorDashboard = () => {
                           >
                             <CardContent sx={{ p: '8px !important', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                               <Typography variant="subtitle2" sx={{ fontWeight: 700, fontSize: '0.8rem', color: '#1a365d', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                {appointment.patient?.firstName || appointment.patientFirstName || "Paziente"} {appointment.patient?.lastName || appointment.patientLastName || ""}
+                                {patientInfo.name} {patientInfo.surname}
                               </Typography>
                               <Typography variant="caption" sx={{ fontSize: '0.7rem', color: '#455a64', mt: 0.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                 {appointment.reason || 'Visita'}
@@ -276,74 +305,94 @@ const DoctorDashboard = () => {
           )}
         </Paper>
 
-        {/* DIALOG DETTAGLI */}
+        {/* DIALOG DETTAGLI COMPLETI */}
         {selectedAppt && (
           <Dialog open={openDetailsDialog} TransitionComponent={Transition} onClose={handleCloseDetails} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 4, overflow: 'hidden' } }}>
-            <Box sx={{ background: getHeaderColor(selectedAppt.status), p: 3, color: '#fff', position: 'relative' }}>
-              <IconButton onClick={handleCloseDetails} sx={{ position: 'absolute', top: 8, right: 8, color: 'rgba(255,255,255,0.8)' }}><CloseIcon /></IconButton>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.2)', width: 50, height: 50 }}><PersonIcon /></Avatar>
-                <Box>
-                  <Typography variant="h5" fontWeight={700}>
-                    {selectedAppt.patient?.firstName || selectedAppt.patientFirstName || "Paziente"} {selectedAppt.patient?.lastName || selectedAppt.patientLastName || ""}
-                  </Typography>
-                  <Chip label={isEditing ? "Modifica in corso..." : selectedAppt.status} size="small" sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: '#fff', fontWeight: 600, mt: 0.5 }} />
-                </Box>
-              </Box>
-            </Box>
+            {/* Recuperiamo i dati puliti per il rendering */}
+            {(() => {
+                const info = getPatientInfo(selectedAppt);
+                return (
+                    <>
+                        <Box sx={{ background: getHeaderColor(selectedAppt.status), p: 3, color: '#fff', position: 'relative' }}>
+                          <IconButton onClick={handleCloseDetails} sx={{ position: 'absolute', top: 8, right: 8, color: 'rgba(255,255,255,0.8)' }}><CloseIcon /></IconButton>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                            <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.2)', width: 50, height: 50 }}><PersonIcon /></Avatar>
+                            <Box>
+                              <Typography variant="h5" fontWeight={700}>
+                                {info.name} {info.surname}
+                              </Typography>
+                              <Chip label={isEditing ? "Modifica in corso..." : selectedAppt.status} size="small" sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: '#fff', fontWeight: 600, mt: 0.5 }} />
+                            </Box>
+                          </Box>
+                        </Box>
 
-            <DialogContent sx={{ pt: 4, pb: 2 }}>
-              {!isEditing ? (
-                <Grid container spacing={3}>
-                  <Grid item xs={12}>
-                    <Stack spacing={2.5}>
-                      <Box sx={{ display: 'flex', gap: 2 }}><EmailIcon color="primary" /><Typography>{selectedAppt.patient?.email || selectedAppt.patientEmail || 'Email non disponibile'}</Typography></Box>
-                      <Box sx={{ display: 'flex', gap: 2 }}><PhoneIcon color="primary" /><Typography>{selectedAppt.patient?.phone || selectedAppt.patient?.phoneNumber || selectedAppt.patientPhone || 'Telefono non disponibile'}</Typography></Box>
-                      <Box sx={{ display: 'flex', gap: 2 }}><CakeIcon color="primary" /><Typography>{selectedAppt.patient?.birth || 'Data di nascita non disponibile'}</Typography></Box>
-                      <Box sx={{ display: 'flex', gap: 2 }}><EventIcon color="primary" /><Typography fontWeight={700}>{new Date(selectedAppt.appointmentDate).toLocaleDateString()} - {formatTimeSlot(selectedAppt.timeSlot)}</Typography></Box>
-                      <Divider />
-                      <Box sx={{ display: 'flex', gap: 2 }}><BookmarkIcon color="action" /><Typography><strong>Motivo:</strong> {selectedAppt.reason || 'Nessun motivo specificato'}</Typography></Box>
-                      <Box sx={{ display: 'flex', gap: 2 }}><NotesIcon color="action" /><Typography sx={{ fontStyle: 'italic', color: '#666' }}><strong>Note:</strong> {selectedAppt.notes || 'Nessuna nota aggiuntiva'}</Typography></Box>
-                    </Stack>
-                  </Grid>
-                </Grid>
-              ) : (
-                <Grid container spacing={3} sx={{ mt: 1 }}>
-                  <Grid item xs={12}>
-                    <TextField fullWidth type="date" label="Seleziona Nuova Data" InputLabelProps={{ shrink: true }} value={editForm.date} onChange={(e) => setEditForm({...editForm, date: e.target.value})} />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <FormControl fullWidth>
-                      <InputLabel>Seleziona Nuovo Orario</InputLabel>
-                      <Select value={editForm.timeSlot} label="Seleziona Nuovo Orario" onChange={(e) => setEditForm({...editForm, timeSlot: e.target.value})}>
-                        {ALL_TIME_SLOTS.map(slot => <MenuItem key={slot} value={slot}>{formatTimeSlot(slot)}</MenuItem>)}
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                </Grid>
-              )}
-            </DialogContent>
+                        <DialogContent sx={{ pt: 4, pb: 2 }}>
+                          {!isEditing ? (
+                            <Grid container spacing={3}>
+                              <Grid item xs={12}>
+                                <Stack spacing={2.5}>
+                                  <Box sx={{ display: 'flex', gap: 2 }}><EmailIcon color="primary" /><Typography>{info.email}</Typography></Box>
+                                  
+                                  {/* TELEFONO */}
+                                  <Box sx={{ display: 'flex', gap: 2 }}>
+                                    <PhoneIcon color="primary" />
+                                    <Typography>{info.phone}</Typography>
+                                  </Box>
+                                  
+                                  {/* DATA DI NASCITA */}
+                                  <Box sx={{ display: 'flex', gap: 2 }}>
+                                    <CakeIcon color="primary" />
+                                    <Typography>{formatBirthDate(info.birth)}</Typography>
+                                  </Box>
 
-            <Divider />
+                                  <Box sx={{ display: 'flex', gap: 2 }}><EventIcon color="primary" /><Typography fontWeight={700}>{new Date(selectedAppt.appointmentDate).toLocaleDateString()} - {formatTimeSlot(selectedAppt.timeSlot)}</Typography></Box>
+                                  
+                                  <Divider />
+                                  <Box sx={{ display: 'flex', gap: 2 }}><BookmarkIcon color="action" /><Typography><strong>Motivo:</strong> {selectedAppt.reason || 'Nessun motivo specificato'}</Typography></Box>
+                                  <Box sx={{ display: 'flex', gap: 2 }}><NotesIcon color="action" /><Typography sx={{ fontStyle: 'italic', color: '#666' }}><strong>Note:</strong> {selectedAppt.notes || 'Nessuna nota aggiuntiva'}</Typography></Box>
+                                </Stack>
+                              </Grid>
+                            </Grid>
+                          ) : (
+                            <Grid container spacing={3} sx={{ mt: 1 }}>
+                              <Grid item xs={12}>
+                                <TextField fullWidth type="date" label="Seleziona Nuova Data" InputLabelProps={{ shrink: true }} value={editForm.date} onChange={(e) => setEditForm({...editForm, date: e.target.value})} />
+                              </Grid>
+                              <Grid item xs={12}>
+                                <FormControl fullWidth>
+                                  <InputLabel>Seleziona Nuovo Orario</InputLabel>
+                                  <Select value={editForm.timeSlot} label="Seleziona Nuovo Orario" onChange={(e) => setEditForm({...editForm, timeSlot: e.target.value})}>
+                                    {ALL_TIME_SLOTS.map(slot => <MenuItem key={slot} value={slot}>{formatTimeSlot(slot)}</MenuItem>)}
+                                  </Select>
+                                </FormControl>
+                              </Grid>
+                            </Grid>
+                          )}
+                        </DialogContent>
 
-            <DialogActions sx={{ p: 3, justifyContent: 'space-between' }}>
-              {!isEditing ? (
-                <>
-                  <Button onClick={handleDeleteClick} startIcon={<DeleteIcon />} color="error" sx={{ fontWeight: 700 }}>Elimina</Button>
-                  <Box sx={{ display: 'flex', gap: 1 }}>
-                    {selectedAppt.status !== 'CANCELLED' && (
-                      <Button onClick={handleCancelStatus} variant="outlined" color="error" startIcon={<CancelIcon />}>Annulla Visita</Button>
-                    )}
-                    <Button onClick={startEdit} variant="contained" startIcon={<EditIcon />} sx={{ bgcolor: '#00B4D8', fontWeight: 700 }}>Modifica Data</Button>
-                  </Box>
-                </>
-              ) : (
-                <>
-                  <Button onClick={() => setIsEditing(false)}>Annulla</Button>
-                  <Button onClick={saveEdit} variant="contained" color="success" sx={{ fontWeight: 700 }}>Salva Modifiche</Button>
-                </>
-              )}
-            </DialogActions>
+                        <Divider />
+
+                        <DialogActions sx={{ p: 3, justifyContent: 'space-between' }}>
+                          {!isEditing ? (
+                            <>
+                              <Button onClick={handleDeleteClick} startIcon={<DeleteIcon />} color="error" sx={{ fontWeight: 700 }}>Elimina</Button>
+                              <Box sx={{ display: 'flex', gap: 1 }}>
+                                {selectedAppt.status !== 'CANCELLED' && (
+                                  <Button onClick={handleCancelStatus} variant="outlined" color="error" startIcon={<CancelIcon />}>Annulla Visita</Button>
+                                )}
+                                <Button onClick={startEdit} variant="contained" startIcon={<EditIcon />} sx={{ bgcolor: '#00B4D8', fontWeight: 700 }}>Modifica Data</Button>
+                              </Box>
+                            </>
+                          ) : (
+                            <>
+                              <Button onClick={() => setIsEditing(false)}>Annulla</Button>
+                              <Button onClick={saveEdit} variant="contained" color="success" sx={{ fontWeight: 700 }}>Salva Modifiche</Button>
+                            </>
+                          )}
+                        </DialogActions>
+                    </>
+                );
+            })()}
           </Dialog>
         )}
 

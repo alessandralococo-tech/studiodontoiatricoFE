@@ -8,7 +8,6 @@ import {
 import { fetchDoctorsRequest, selectDoctor } from '../../redux/slices/doctorSlice';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
-import EmailIcon from '@mui/icons-material/Email';
 import HowToRegIcon from '@mui/icons-material/HowToReg';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
@@ -31,12 +30,12 @@ const DoctorsList = () => {
   }, [dispatch]);
 
   const handleSelectDoctor = (doctor) => {
-    // Normalizziamo l'oggetto medico
+    // Normalizziamo l'oggetto
     const cleanDoctor = {
         id: doctor.id,
-        name: doctor.firstName || doctor.name,
-        surname: doctor.lastName || doctor.surname,
-        email: doctor.email || doctor.emailAddress || '',
+        firstName: doctor.name || doctor.firstName, 
+        lastName: doctor.surname || doctor.lastName, 
+        email: doctor.email || '',
         specialization: doctor.specialization || 'Odontoiatra'
     };
     
@@ -83,18 +82,23 @@ const DoctorsList = () => {
             <Grid item xs={12} sm={6} md={4} key={doctor.id}>
               <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', borderRadius: 4, transition: 'all 0.3s', '&:hover': { transform: 'translateY(-8px)', boxShadow: '0 15px 35px rgba(0,0,0,0.08)' } }}>
                 <Box sx={{ position: 'relative', height: 260 }}>
-                  <CardMedia component="img" image={doctorImages[index % doctorImages.length]} alt={doctor.lastName} sx={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <CardMedia component="img" image={doctorImages[index % doctorImages.length]} alt={doctor.surname} sx={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   <Box sx={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'linear-gradient(to top, rgba(0,30,60,0.8), transparent)', p: 3, pt: 8 }}>
-                    <Typography variant="h6" sx={{ color: '#fff', fontWeight: 700 }}>Dr. {doctor.firstName} {doctor.lastName}</Typography>
+                    <Typography variant="h6" sx={{ color: '#fff', fontWeight: 700 }}>
+                      Dr. {doctor.name} {doctor.surname}
+                    </Typography>
                     <Chip label={doctor.specialization || 'Odontoiatra'} size="small" icon={<VerifiedUserIcon sx={{fontSize: '14px !important'}} />} sx={{ bgcolor: 'rgba(255,255,255,0.9)', color: '#0077B6', fontWeight: 700, height: 24, mt: 0.5 }} />
                   </Box>
                 </Box>
+                
+                {/* RIMOSSO IL BLOCCO DELL'EMAIL, RIMANE SOLO IL CONTENUTO ESSENZIALE */}
                 <CardContent sx={{ p: 3, flexGrow: 1 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, color: '#546E7A' }}>
-                    <EmailIcon fontSize="small" sx={{ color: '#90A4AE' }} />
-                    <Typography variant="body2" noWrap sx={{ fontWeight: 500 }}>{doctor.email}</Typography>
-                  </Box>
+                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, bgcolor: '#E8F5E9', p: 1, borderRadius: 2, width: 'fit-content' }}>
+                      <VerifiedUserIcon sx={{ fontSize: 16, color: '#2E7D32' }} />
+                      <Typography variant="caption" sx={{ color: '#2E7D32', fontWeight: 700, letterSpacing: 0.5 }}>SPECIALISTA CERTIFICATO</Typography>
+                   </Box>
                 </CardContent>
+
                 <CardActions sx={{ p: 3, pt: 0 }}>
                   <Button fullWidth variant="contained" size="large" onClick={() => handleSelectDoctor(doctor)} sx={{ borderRadius: 3, fontWeight: 700, py: 1.5 }}>Prenota Visita</Button>
                 </CardActions>

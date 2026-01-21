@@ -46,9 +46,13 @@ function* loginSaga(action) {
   }
 }
 
+// REGISTER SAGA
 function* registerSaga(action) {
   try {
+    // Estraiamo tutti i dati dal payload dell'azione
     const { firstName, lastName, email, password, phone, birth } = action.payload;
+    
+    // Passiamo TUTTI i dati all'API
     const response = yield call(authApi.register, firstName, lastName, email, password, phone, birth);
     
     const token = response.token || response.accessToken;
@@ -73,7 +77,7 @@ function* registerSaga(action) {
   }
 }
 
-// FETCH PROFILE (CRUCIALE PER PRECOMPILAZIONE)
+// FETCH PROFILE SAGA
 function* fetchProfileSaga() {
   try {
     const state = yield select();
@@ -82,29 +86,25 @@ function* fetchProfileSaga() {
     let profileData = null;
 
     if (role === 'ROLE_ADMIN') {
-      const response = yield call(authApi.getDoctorProfile);
-      profileData = response; 
+      profileData = yield call(authApi.getDoctorProfile);
     } else {
-      const response = yield call(authApi.getPatientProfile);
-      profileData = response;
+      profileData = yield call(authApi.getPatientProfile);
     }
 
     console.log("Dati Profilo Ricevuti dal Backend:", profileData);
 
-    // NORMALIZZAZIONE DATI ROBUSTA
     const normalizedData = {
       id: profileData.id,
       email: profileData.email,
-      // Gestione varianti nomi
-      firstName: profileData.firstName || profileData.name || profileData.first_name,
-      lastName: profileData.lastName || profileData.surname || profileData.last_name,
-      // Gestione varianti telefono e data
-      phone: profileData.phone || profileData.phoneNumber || profileData.mobile || '',
-      birth: profileData.birth || profileData.birthDate || profileData.dateOfBirth || '',
+      firstName: profileData.firstName || profileData.name,
+      lastName: profileData.lastName || profileData.surname,
+      // Gestione sicura se i campi sono null
+      phone: profileData.phone || profileData.phoneNumber || '',
+      birth: profileData.birth || profileData.birthDate || '',
       specialization: profileData.specialization || ''
     };
 
-    console.log("Dati Profilo Normalizzati:", normalizedData);
+    console.log("Dati normalizzati per Redux:", normalizedData);
 
     yield put(fetchProfileSuccess(normalizedData));
 
